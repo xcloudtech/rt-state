@@ -1,6 +1,6 @@
 # rt-state
 
-> Simple library for the state management in React and React Native. It can be used to replace React Hooks APIs. It can also be used together with React Hooks APIs, or calls another library which depends on React Hooks.
+> Another library for the state management in React and React Native. It can be used to replace React Hooks APIs. It can also be used together with React Hooks APIs, or calls any other libraries which depend on React Hooks.
 
 ### Features
 
@@ -8,6 +8,7 @@
 2. Unify local state and global state management. So, don't need `useContext` any more.
 3. Fine granularity of controlling when to update the view with `watch`/`link` functions.
 4. An optimized Array state for the long Array.
+5. wrap all useHook Calls within `useHooks` API, and the user is able to control whether the view should be updated or not.
 
 
 ### Motivation
