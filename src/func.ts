@@ -30,17 +30,19 @@ export function create<T extends object>(setup: (ctx: Context<T>) => (props: T) 
         }, []);
         ////////////////////////////////////////////////
         ctx.updateProps(props);
-        const needUpdate = ctx.use();
-        if (!needUpdate && ctx._oldDom) {
-            return ctx._oldDom;
-        }
 
         let { executor } = ctx;
         if (!executor) {
+            ctx._isInSetup = true;
             const render = setup(ctx);
+            ctx._isInSetup = false;
             executor = new Executor(() => render(ctx.props), update);
             ctx.addDisposeCallBack(() => executor.unwatch());
             ctx.executor = executor;
+        }
+        const needUpdate = ctx.use();
+        if (!needUpdate && ctx._oldDom) {
+            return ctx._oldDom;
         }
         ctx._oldDom = executor.getter();
         return ctx._oldDom;
@@ -52,11 +54,13 @@ export function create<T extends object>(setup: (ctx: Context<T>) => (props: T) 
 // -- The callback function will be called again and again before rendering the component.
 // -- If the return value is false, the view will not be rendered.
 export function useHooks(cb: () => boolean | void) {
+    if (!currCtx._isInSetup) {
+        throw new Error('"useHooks" can only be used within the setup function of the component.');
+    }
     if (currCtx._use != null) {
-        throw new Error('Can not call use function twice within one component');
+        throw new Error('"useHooks" can only be used once within the component.');
     }
     currCtx._use = cb;
-    return currCtx.use();
 }
 // only rerender when any props has changed. (non-reactive)
 export { memo as createS };
@@ -126,7 +130,14 @@ export function watchWithOption(cb: (values, oldValues) => void | Promise<void>,
     const getter = deps ?? (() => null);
 
     const executor = new Executor(getter, update);
-    currCtx?.addDisposeCallBack(() => executor.unwatch());
+
+    // If it is not a global watcher.
+    if (currCtx != null) {
+        currCtx.addDisposeCallBack(() => executor.unwatch());
+        if (!currCtx._isInSetup) {
+            throw new Error('"watch" can only be called within the setup function of the current component, or use it globally.');
+        }
+    }
 
     const values = executor.getter();
     cb(values, oldValues);
@@ -147,12 +158,14 @@ class _Context<T> {
     _watchProps: StateV<T>;
     _defaultProps: DefaultProps<T>;
     _updateView: () => void;
+    _isInSetup: boolean;
 
     constructor(props: T, update: () => void) {
         this.cleanup = new Set<() => void>();
         this._props = props;
         this._watchProps = stateV<T>(props);
         this._updateView = update;
+        this._isInSetup = false;
     }
     /////////////////////////
     addDisposeCallBack(cb: () => void) {
@@ -199,6 +212,9 @@ class _Context<T> {
     // will be called when the component is about to be unmounted.
     onDispose(cb: () => void) {
         this.addDisposeCallBack(cb);
+        if (!this._isInSetup) {
+            throw new Error('"onDispose" can only be called within the setup function of the current component.');
+        }
     }
 
     forceUpdate() {

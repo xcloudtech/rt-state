@@ -59,15 +59,8 @@ export const ReactiveDemo = create((ctx) => {
                 <ArrComp />
                 <LongArrayComp />
                 <br />
-                <Demo name={'demo'} />
             </div>
         );
-    };
-});
-
-export const Demo = create<{ name: string }>((ctx) => {
-    return (props) => {
-        return <div>{props.name}</div>;
     };
 });
 
@@ -111,18 +104,36 @@ export const UseHookComp = create((ctx) => {
 
     let num, setNum;
     useHooks(() => {
+        //// can't use watch here!
+        // watch(
+        //     () => {
+        //         console.log(gState.num);
+        //     },
+        //     () => [gState.num],
+        // );
+
         // This callback function will be called again and again before rendering the component.
+        console.log('call Hooks');
         [num, setNum] = useState(666);
         if (num >= 670 && num <= 675) {
             return false;
         }
     });
 
+    // // can't use "useHooks" again, just wrap all your use* functions within one "useHooks" callback.
+    // useHooks(() => {
+    //     useState();
+    // });
+
     const addOne = () => {
         setNum(num + 1);
     };
 
     return () => {
+        // // can't use "useHooks" in render function.
+        // useHooks(() => {
+        //     useState();
+        // });
         console.log(`${ctx.debugName} render`);
         return (
             <div>
@@ -194,6 +205,15 @@ const ShowNumField = create<{ numV1: number; numV2: number }>((ctx) => {
         console.log(`${ctx.debugName} teardown: ${ctx.props.numV1}  ${ctx.props.numV2} `);
     });
     return (props) => {
+        // // "onDispose" can only be called within the setup function of the current component.
+        // ctx.onDispose(() => {
+        //     console.log('break!');
+        // });
+        // // "watch" can not be called in the render function.
+        // watch(
+        //     () => console.log('break!'),
+        //     () => [null],
+        // );
         console.log(`${ctx.debugName} render: ${props.numV1}  ${props.numV2} `);
         return (
             <div>
