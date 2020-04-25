@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, cache, useHooks, LongArray, StateV } from '../'; // 'rt-state';
+import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, createS, useHooks, LongArray, StateV } from '../'; // 'rt-state';
 import { useState } from 'react';
 
 const delay = (ms: number) => {
@@ -160,7 +160,7 @@ const TestBatchUpdateComp = create((ctx) => {
     };
 });
 
-const CacheComp = cache<{ name: string; val: number }>(({ name, val }) => {
+const CacheComp = createS<{ name: string; val: number }>(({ name, val }) => {
     console.log('CacheComp render');
     return (
         <span>

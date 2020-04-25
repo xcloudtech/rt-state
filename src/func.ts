@@ -12,7 +12,7 @@ export function setDebugComponentName(name: string) {
 }
 // setup:
 //  -- only be called once at the beginning of the whole lifecycle of the component.
-//  -- Create same states, or use watch/link functions or create any user defined functions or any normal (non-reactive) variables.
+//  -- Create some states, or use watch/link functions or create any user defined functions or any normal (non-reactive) variables.
 //  -- return a render function, which can be used for rendering the components many times.
 export function create<T extends object>(setup: (ctx: Context<T>) => (props: T) => React.ReactNode): React.FC<T> {
     //////////////////////////////////////////////////
@@ -59,7 +59,7 @@ export function useHooks(cb: () => boolean | void) {
     return currCtx.use();
 }
 // only rerender when any props has changed. (non-reactive)
-export { memo as cache };
+export { memo as createS };
 
 // -- deep: update the link value, and update its parent(most of the time, the view) as long as any state* changes in the deps function.
 export function deepLink<T>(getter: () => T, setter?: (v: T) => void): StateV<T> {
