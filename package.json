@@ -1,18 +1,20 @@
 {
   "name": "rt-state",
-  "version": "0.0.0",
+  "version": "0.0.8",
   "description": "A framework built on top of react hooks",
   "main": "lib/index.js",
-  "module": "lib/index.es.js",
-  "jsnext:main": "lib/index.es.js",
+  "types": "lib/index.d.ts",
+  "private": false,
   "files": [
-    "dist"
+    "src",
+    "lib"
   ],
   "scripts": {
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
-    "dev": "parcel example/index.html",
-    "build": "rollup -c",
-    "start": "rollup -c -w"
+    "tsc": "./node_modules/typescript/bin/tsc",
+    "build": "npm run tsc",
+    "rm": "rimraf lib",
+    "push": "npm run rm && npm run build && npm publish"
   },
   "repository": {
     "type": "git",
@@ -30,33 +32,24 @@
     "url": "https://github.com/duchiporexia/rt-state/issues"
   },
   "homepage": "https://github.com/duchiporexia/rt-state#readme",
-  "dependencies": {},
-  "peerDependencies": {
-    "react": "16.13.1",
-    "react-dom": "16.13.1",
+  "dependencies": {
     "proxy-polyfill": "^0.3.1"
   },
+  "peerDependencies": {
+    "react": "*",
+    "react-dom": "*"
+  },
   "devDependencies": {
-    "@svgr/rollup": "^5.3.1",
-    "@types/jest": "^25.2.1",
-    "cross-env": "^7.0.2",
-    "proxy-polyfill": "^0.3.1",
-    "react": "16.13.1",
-    "react-dom": "16.13.1",
-    "react-scripts-ts": "^3.1.0",
-    "react-test-renderer": "^16.13.1",
-    "react-testing-library": "^8.0.1",
-    "prettier": "^2.0.4",
+    "@react-native-community/eslint-config": "^1.1.0",
     "@typescript-eslint/eslint-plugin": "^2.28.0",
     "@typescript-eslint/parser": "^2.28.0",
-    "rollup": "^2.7.2",
-    "rollup-plugin-babel": "^4.4.0",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-peer-deps-external": "^2.2.2",
-    "rollup-plugin-postcss": "^3.1.1",
-    "rollup-plugin-typescript2": "^0.27.0",
-    "rollup-plugin-url": "^3.0.1",
+    "prettier": "^2.0.4",
+    "react": "^16.11.0",
+    "react-dom": "^16.11.0",
+    "rimraf": "^3.0.2",
     "typescript": "^3.8.3"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }

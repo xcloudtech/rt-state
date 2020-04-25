@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, cache, useHooks, LongArray, StateV } from '../src';
+import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, cache, useHooks, LongArray, StateV } from 'rt-state';
 import { useState } from 'react';
 
 const delay = (ms: number) => {

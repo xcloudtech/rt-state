@@ -1,16 +1,14 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "module": "ES2015",
-    "lib": ["es6"],
+    "module": "commonjs",
+    "lib": ["es6", "dom", "es2017"],
     "allowJs": true,
     "declaration": true,
-    "baseUrl": ".",
     "outDir": "lib",
+    "rootDirs": ["src", "example"],
     "sourceMap": true,
-    "rootDir": "src",
     "jsx": "react",
-    "noEmit": true,
     "isolatedModules": true,
     "strict": false,
     "noImplicitAny": false,
@@ -21,9 +19,9 @@
     "strictFunctionTypes": false,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "build", "dist", "lib", "example", "rollup.config.js"]
+  "exclude": ["node_modules", "build", "dist", "lib", "example"]
 }
-
