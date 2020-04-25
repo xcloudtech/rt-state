@@ -6,7 +6,7 @@
     "allowJs": true,
     "declaration": true,
     "outDir": "lib",
-    "rootDirs": ["src", "example"],
+    "rootDirs": ["src"],
     "sourceMap": true,
     "jsx": "react",
     "isolatedModules": true,
@@ -23,5 +23,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "build", "dist", "lib", "example"]
+  "exclude": ["node_modules", "build", "dist", "lib", "src/demo"]
 }

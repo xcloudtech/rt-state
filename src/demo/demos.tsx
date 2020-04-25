@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, cache, useHooks, LongArray, StateV } from 'rt-state';
+import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, cache, useHooks, LongArray, StateV } from '../'; // 'rt-state';
 import { useState } from 'react';
 
 const delay = (ms: number) => {
@@ -66,18 +66,8 @@ export const ReactiveDemo = create((ctx) => {
 });
 
 export const Demo = create<{ name: string }>((ctx) => {
-    const data = state({ num: 666 });
-    const addOne = () => data.num++;
-
     return (props) => {
-        return (
-            <div>
-                <span>
-                    {props.name} {data.num}
-                </span>
-                <button onClick={addOne}>addOne</button>
-            </div>
-        );
+        return <div>{props.name}</div>;
     };
 });
 
@@ -231,7 +221,7 @@ const ShowCountParent = create((ctx) => {
         console.log(`${ctx.debugName} render`);
         return (
             <>
-                <div>This is from ShowCountParent</div>
+                <div>good</div>
                 <ShowCount name={'ShowCount'} />
             </>
         );
