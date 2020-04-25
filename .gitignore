@@ -6,6 +6,7 @@
 /lib/
 /example/.cache
 /example/dist/
+/example/.idea
 
 build/
 .idea

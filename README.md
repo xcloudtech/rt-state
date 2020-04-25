@@ -23,14 +23,18 @@ In rt-state, it uses `create` function to create components, which takes a `setu
 
 ```js
     const Demo = create<{ name: string }>((ctx) => {
-        const data = state({num: number});
+        const data = state({ num: 666 });
         const addOne = () => data.num++;
-
+    
         return (props) => {
-            return <div>
-                     <span> {props.name} {data.num}</span>
-                     <button onClick={addOne}>addOne</button>
-            </div>;
+            return (
+                <div>
+                    <span>
+                        {props.name} {data.num}
+                    </span>
+                    <button onClick={addOne}>addOne</button>
+                </div>
+            );
         };
     });
 
