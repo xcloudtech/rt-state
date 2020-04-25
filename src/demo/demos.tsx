@@ -13,6 +13,7 @@ const gWatcher = watch(
         // console.log('globally shared data changed:', JSON.stringify(values));
     },
     () => [gState.count, gState.num],
+    true,
 );
 
 export const ReactiveDemo = create((ctx) => {

@@ -65,17 +65,18 @@ export function useHooks(cb: () => boolean | void) {
 // only rerender when any props has changed. (non-reactive)
 export { memo as createS };
 
-// -- deep: update the link value, and update its parent(most of the time, the view) as long as any state* changes in the deps function.
-export function deepLink<T>(getter: () => T, setter?: (v: T) => void): StateV<T> {
-    return linkWithOptions(getter, setter, 'deep');
-}
 // -- update the link value, and update its parent when the value changes.
-export function link<T>(getter: () => T, setter?: (v: T) => void): StateV<T> {
-    return linkWithOptions(getter, setter, null);
+export function link<T>(getter: () => T, setter?: (v: T) => void, isGlobal?: boolean): StateV<T> {
+    return linkWithOptions(getter, setter, false, isGlobal);
+}
+
+// -- deep: update the link value, and update its parent(most of the time, the view) as long as any state* changes in the deps function.
+export function deepLink<T>(getter: () => T, setter?: (v: T) => void, isGlobal?: boolean): StateV<T> {
+    return linkWithOptions(getter, setter, true, isGlobal);
 }
 
 // linkWithOptions is a pair of getter and setter function.
-function linkWithOptions<T>(getter: () => T, setter: (v: T) => void, option: 'deep' | null): StateV<T> {
+function linkWithOptions<T>(getter: () => T, setter: (v: T) => void, isDeep: boolean, isGlobal: boolean): StateV<T> {
     const linkId = {};
     let value: T;
 
@@ -84,7 +85,7 @@ function linkWithOptions<T>(getter: () => T, setter: (v: T) => void, option: 'de
         trigger(linkId, '.');
     };
 
-    const watcher = watchWithOption(update, () => [getter()], option);
+    const watcher = watchWithOption(update, () => [getter()], isDeep, isGlobal);
 
     return {
         watcher, // just for debug.
@@ -102,16 +103,16 @@ function linkWithOptions<T>(getter: () => T, setter: (v: T) => void, option: 'de
 
 // watch the deps function.
 // -- call cb function once when any 'state*' values in the deps function gets updated and the deps value list is not the same as before.
-export function watch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(cb: (values: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, oldValues: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>) => void | Promise<void>, deps?: () => DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>) {
-    return watchWithOption(cb, deps, null);
+export function watch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(cb: (values: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, oldValues: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>) => void | Promise<void>, deps: () => DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, isGlobal?: boolean) {
+    return watchWithOption(cb, deps, false, isGlobal);
 }
 // watch the deps function.
 // -- call cb function once when any 'state*' values in the deps function gets updated.
-export function deepWatch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(cb: (values: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, oldValues: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>) => void | Promise<void>, deps?: () => DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>) {
-    return watchWithOption(cb, deps, 'deep');
+export function deepWatch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(cb: (values: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, oldValues: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>) => void | Promise<void>, deps: () => DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, isGlobal?: boolean) {
+    return watchWithOption(cb, deps, true, isGlobal);
 }
 
-export function watchWithOption(cb: (values, oldValues) => void | Promise<void>, deps: () => any[], option: 'deep' | null): Watcher {
+export function watchWithOption(cb: (values, oldValues) => void | Promise<void>, deps: () => any[], isDeep: boolean, isGlobal: boolean): Watcher {
     let oldValues = null;
     const update = () => {
         if (!executor.active) {
@@ -119,7 +120,7 @@ export function watchWithOption(cb: (values, oldValues) => void | Promise<void>,
         }
         const values = executor.getter();
         let needCall = true;
-        if (option == null) {
+        if (!isDeep) {
             needCall = notEqual(values, oldValues);
         }
         if (needCall) {
@@ -132,11 +133,11 @@ export function watchWithOption(cb: (values, oldValues) => void | Promise<void>,
     const executor = new Executor(getter, update);
 
     // If it is not a global watcher.
-    if (currCtx != null) {
-        currCtx.addDisposeCallBack(() => executor.unwatch());
-        if (!currCtx._isInSetup) {
-            throw new Error('"watch" can only be called within the setup function of the current component, or use it globally.');
+    if (!isGlobal) {
+        if (!currCtx || !currCtx._isInSetup) {
+            throw new Error('"watch" can only be called within the setup function of the current component, or use it out of the component and set it to be global.');
         }
+        currCtx.addDisposeCallBack(() => executor.unwatch());
     }
 
     const values = executor.getter();
