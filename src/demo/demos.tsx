@@ -13,7 +13,7 @@ const gWatcher = watch(
         // console.log('globally shared data changed:', JSON.stringify(values));
     },
     () => [gState.count, gState.num],
-    true,
+    { global: true },
 );
 
 export const ReactiveDemo = create((ctx) => {
@@ -38,6 +38,7 @@ export const ReactiveDemo = create((ctx) => {
         return (
             <div>
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
+                <WatchTestComp />
                 <ShowCountParent />
                 <button
                     onClick={() => {
@@ -65,7 +66,44 @@ export const ReactiveDemo = create((ctx) => {
     };
 });
 
-export const ForceUpdateComp = create<{ stateFromParent: { parentNum: number } }>((ctx) => {
+const WatchTestComp = create((ctx) => {
+    setDebugComponentName('WatchTestComp');
+    console.log(`${ctx.debugName} setup`);
+    const data = state({ v1: 0, v2: 100 });
+    let sum;
+
+    watch(
+        (values) => {
+            const newSum = values[0];
+            console.log('newSum:', newSum);
+            if (newSum !== sum) {
+                sum = newSum;
+                //After changeSomething gets called, the new sum is still 100. But the sum becomes 101 in the middle of the change. So, forceUpdate has been called twice. Good news is the view is only updated once, because react has optimized it.
+                ctx.forceUpdate();
+            }
+        },
+        () => [data.v1 + data.v2],
+    );
+
+    const changeSomething = () => {
+        data.v1++;
+        // Here, the sum becomes 101.
+        data.v2--;
+    };
+
+    return () => {
+        console.log(`${ctx.debugName} render`);
+        return (
+            <div>
+                {ctx.debugName}&nbsp;
+                <button onClick={changeSomething}>change</button>
+                &nbsp;sum: {sum}
+            </div>
+        );
+    };
+});
+
+const ForceUpdateComp = create<{ stateFromParent: { parentNum: number } }>((ctx) => {
     setDebugComponentName('ForceUpdateComp');
     console.log(`${ctx.debugName} setup`);
 
@@ -99,7 +137,7 @@ export const ForceUpdateComp = create<{ stateFromParent: { parentNum: number } }
     };
 });
 
-export const UseHookComp = create((ctx) => {
+const UseHookComp = create((ctx) => {
     setDebugComponentName('UseHookComp');
     console.log(`${ctx.debugName} setup`);
 

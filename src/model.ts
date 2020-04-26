@@ -20,6 +20,16 @@ export interface Context<T> {
     forceUpdate(): void;
 }
 
+// -- compare: compare new values with old values, if they are the same, don't call the callback function, otherwise, call it.
+//    -- The default value is true, which means always do comparison.
+//    -- If compare is false, don't compare two values, just call the callback function directly.
+// -- global: call watch function outside of any component.
+//    -- often used for debugging, or within a watch function, it can change other global state* or global variables.
+export interface WatchOptions {
+    compare?: boolean;
+    global?: boolean;
+}
+
 export interface Watcher {
     readonly active: boolean;
     readonly debugName: string;
