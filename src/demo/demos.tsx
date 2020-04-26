@@ -166,21 +166,37 @@ const TestBatchUpdateComp = create((ctx) => {
                 </button>
                 &nbsp;
                 {data.value}
-                <CacheComp name={'CacheComp'} val={666} />
+                <CreateSimpleComp name={'SimpleComp1'} val={data.value} />
+                <CreateSimpleComp name={'SimpleComp2'} />
             </div>
         );
     };
 });
 
-const CacheComp = createS<{ name: string; val: number }>(({ name, val }) => {
-    console.log('CacheComp render');
-    return (
-        <span>
-            &nbsp;
-            {name} name:{val}
-        </span>
-    );
-});
+const CreateSimpleComp = createS<{ name: string; val?: number }>(
+    ({ name, val }) => {
+        console.log(`${name} render`);
+        // don't create local state in render function, because although the state change could trigger the re-rendering of this component, it will be redefined during each rendering, so its value will stay the same as the initial value.
+        const data = state({ num: 11 });
+        // // "watch" can not be called in the render function.
+        // watch(
+        //     () => console.log('break!'),
+        //     () => [null],
+        // );
+        // // can't call useHooks in the render function.
+        // useHooks(() => {
+        //     console.log('break');
+        // });
+        return (
+            <span>
+                &nbsp;
+                <button onClick={() => data.num++}>add</button>
+                {name} name:{val} data:{data.num}(will not change)
+            </span>
+        );
+    },
+    { val: 1000000 },
+);
 
 const ShowNumField = create<{ numV1: number; numV2: number }>((ctx) => {
     setDebugComponentName('ShowNumField');

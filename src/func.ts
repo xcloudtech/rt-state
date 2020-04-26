@@ -2,7 +2,6 @@ import * as React from 'react';
 import { track, trigger, stateV, Executor } from './core';
 import { Context, StateV, Watcher } from './model';
 import { DefaultProps, DepsReturnType, notEqual } from './common';
-import { memo } from 'react';
 
 let currCtx: _Context<any>;
 
@@ -49,6 +48,16 @@ export function create<T extends object>(setup: (ctx: Context<T>) => (props: T) 
     });
     return dom as any;
 }
+
+// only rerender when any props has changed. (non-reactive)
+export function createS<T extends object>(render: (props: T) => React.ReactNode, defaultProps?: DefaultProps<T>): React.FC<T> {
+    return create<T>((ctx) => {
+        if (defaultProps) {
+            ctx.defaultProps = defaultProps;
+        }
+        return render;
+    });
+}
 // useHooks: only used when need the functionality of another library which is using React Hooks APIs.
 // -- IMPORTANT: use 'useHooks' as less as possible.
 // -- The callback function will be called again and again before rendering the component.
@@ -62,8 +71,6 @@ export function useHooks(cb: () => boolean | void) {
     }
     currCtx._use = cb;
 }
-// only rerender when any props has changed. (non-reactive)
-export { memo as createS };
 
 // -- update the link value, and update its parent when the value changes.
 export function link<T>(getter: () => T, setter?: (v: T) => void, isGlobal?: boolean): StateV<T> {
