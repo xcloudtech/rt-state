@@ -49,7 +49,6 @@ export function create<T extends object>(setup: (ctx: Context<T>) => (props: T) 
     return dom as any;
 }
 
-// only rerender when any props has changed. (non-reactive)
 export function createS<T extends object>(render: (props: T) => React.ReactNode, defaultProps?: DefaultProps<T>): React.FC<T> {
     return create<T>((ctx) => {
         if (defaultProps) {
@@ -58,10 +57,7 @@ export function createS<T extends object>(render: (props: T) => React.ReactNode,
         return render;
     });
 }
-// useHooks: only used when need the functionality of another library which is using React Hooks APIs.
-// -- IMPORTANT: use 'useHooks' as less as possible.
-// -- The callback function will be called again and again before rendering the component.
-// -- If the return value is false, the view will not be rendered.
+
 export function useHooks(cb: () => boolean | void) {
     if (!currCtx._isInSetup) {
         throw new Error('"useHooks" can only be used within the setup function of the component.');
@@ -72,13 +68,6 @@ export function useHooks(cb: () => boolean | void) {
     currCtx._use = cb;
 }
 
-// link is a pair of getter and setter function.
-// options:
-// -- compare: true => conditionally update the link value, and update its parent when the value changes.
-//    -- if false, always update the link value, and update its parent (a view or a watch/link function).
-//    -- The default value is true.
-// -- global: true => call link function out of any component.
-//     -- often used for sharing data globally between different components.
 export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateV<T> {
     const linkId = {};
     let value: T;
@@ -104,9 +93,6 @@ export function link<T>(getter: () => T, setter?: (v: T) => void, options?: Watc
     } as StateV<T>;
 }
 
-// watch the deps function.
-// -- watch the state* within the deps function. And call cb function depending on the options.
-//    -- see WatchOptions.
 export function watch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(cb: (values: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, oldValues: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>) => void | Promise<void>, deps: () => DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, options?: WatchOptions) {
     return watchWithOption(cb, deps, options);
 }

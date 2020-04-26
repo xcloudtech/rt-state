@@ -13,7 +13,7 @@ const targetMap = new WeakMap<Target, KeyExecutorSet>();
 const targetToProxy = new WeakMap<Target, Proxy>();
 const proxyToTarget = new WeakMap<Proxy, Target>();
 
-let currExecutor = null;
+let currExecutor: Executor = null;
 
 // @ts-ignore
 // eslint-disable-next-line no-new-func
@@ -89,7 +89,30 @@ export function track(target: Target, key: Key) {
 export function trigger(target: Target, key: Key) {
     const deps = targetMap.get(target);
     const dep = deps?.get(key);
-    dep && Array.from(dep).forEach((e) => e.update());
+    if (dep) {
+        if (depSetForBatchUpdate != null) {
+            // in batchChange
+            dep.forEach((e) => depSetForBatchUpdate.add(e));
+        } else {
+            Array.from(dep).forEach((e) => e.update());
+        }
+    }
+}
+
+let depSetForBatchUpdate: Set<Executor> = null;
+
+export function batchUpdate(cb: () => void) {
+    if (currExecutor) {
+        throw new Error('It can only be used within the Callback function of an event, like click event.');
+    }
+    if (depSetForBatchUpdate != null) {
+        throw new Error('recursively call "batchUpdate", wrong!');
+    }
+    depSetForBatchUpdate = new Set<Executor>();
+    cb();
+    const deps = depSetForBatchUpdate;
+    depSetForBatchUpdate = null;
+    deps.forEach((e) => e.update());
 }
 
 export class Executor {

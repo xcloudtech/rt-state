@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, createS, useHooks, LongArray, StateV } from '../'; // 'rt-state';
+import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, createS, useHooks, LongArray, StateV, batchUpdate } from '../'; // 'rt-state';
 import { useState } from 'react';
 
 const delay = (ms: number) => {
@@ -75,20 +75,31 @@ const WatchTestComp = create((ctx) => {
     watch(
         (values) => {
             const newSum = values[0];
-            console.log('newSum:', newSum);
+            // console.log('newSum:', newSum);
             if (newSum !== sum) {
                 sum = newSum;
-                //After changeSomething gets called, the new sum is still 100. But the sum becomes 101 in the middle of the change. So, forceUpdate has been called twice. Good news is the view is only updated once, because react has optimized it.
                 ctx.forceUpdate();
             }
         },
         () => [data.v1 + data.v2],
     );
 
-    const changeSomething = () => {
-        data.v1++;
-        // Here, the sum becomes 101.
-        data.v2--;
+    const changeInBatch = () => {
+        // For batchUpdate, because the sum of (data.v1 + data.v2) is the same as before, it won't call the callback function of watch. It could be 5x faster.
+        console.log('Call change function in batch, nothing would happen.');
+        batchUpdate(() => {
+            change();
+        });
+    };
+    //If calling change directly, the sum will become 101 in the middle of the change. So, forceUpdate has been called for many times until it goes back to 100. But good news is the view is only updated once, because react has optimized it by batch-updating the view as well.
+    const change = () => {
+        let i = 0;
+        while (i < 100000) {
+            data.v1 += i;
+            // Here, in the middle of the change, the sum is not 101.
+            data.v2 -= i;
+            i++;
+        }
     };
 
     return () => {
@@ -96,7 +107,8 @@ const WatchTestComp = create((ctx) => {
         return (
             <div>
                 {ctx.debugName}&nbsp;
-                <button onClick={changeSomething}>change</button>
+                <button onClick={change}>change(slow)</button>&nbsp;
+                <button onClick={changeInBatch}>changeInBatch(fast)</button>
                 &nbsp;sum: {sum}
             </div>
         );
