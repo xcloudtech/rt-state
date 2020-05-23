@@ -15,7 +15,7 @@ export function setDebugComponentName(name: string) {
 //  -- Create some states, or use watch/link functions or create any user defined functions or any normal (non-reactive) variables.
 //  -- return a render function, which can be used for rendering the components many times.
 interface CreateConfig<T> {
-    provide?: ContextProps<any>[];
+    provider?: ContextProps<any>[];
     defaultProps?: DefaultProps<T>;
 }
 export function create<T extends object>(
@@ -53,7 +53,7 @@ export function create<T extends object>(
         ctx._oldDom = executor.getter();
         return ctx._oldDom;
     };
-    return _provide(config?.provide, Comp);
+    return _provide(config?.provider, Comp);
 }
 
 export function createS<T extends object>(

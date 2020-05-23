@@ -83,11 +83,11 @@ export const ReactiveDemo = create((ctx) => {
     };
 });
 
-const ContextPropsX = createContextProps(() => {
+const propsX = (() => {
     const x = stateV(100);
     const add = () => x.value++;
     return { x, add };
-});
+})();
 
 const ContextPropsV = createContextProps(() => {
     const v = stateV(200);
@@ -99,7 +99,6 @@ const ContextPropsParentComp = create(
     (ctx) => {
         setDebugComponentName('ContextPropsParentComp');
         console.log(`${ctx.debugName} setup`);
-        const propsX = ContextPropsX.use();
         const propsV = ContextPropsV.use();
 
         function addAll() {
@@ -116,13 +115,12 @@ const ContextPropsParentComp = create(
             );
         };
     },
-    { provide: [ContextPropsX, ContextPropsV] },
+    { provider: [ContextPropsV] },
 );
 
 const ContextPropsChildComp = create((ctx) => {
     setDebugComponentName('ContextPropsChildComp');
     console.log(`${ctx.debugName} setup`);
-    const propsX = ContextPropsX.use();
     const propsV = ContextPropsV.use();
     useHooks(() => {
         console.log('use Hooks');
