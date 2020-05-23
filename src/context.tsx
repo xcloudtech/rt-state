@@ -1,21 +1,14 @@
 import React, { useMemo } from 'react';
 import { _checkAndPush } from './func';
+import { ContextProps } from './model';
 
 const EMPTY: unique symbol = Symbol();
 
-export interface ContextPropsProviderProps<P> {
-    children: React.ReactNode;
-}
-
-export interface ContextProps<P> {
-    use(): P;
-}
-
-export function createContextProps<P>(init?: () => P): ContextProps<P> {
+export function createContextProps<P>(init: () => P): ContextProps<P> {
     const Context = React.createContext<P | typeof EMPTY>(EMPTY);
 
-    function Provider(props: ContextPropsProviderProps<P>) {
-        const value = useMemo(() => init?.(), []);
+    function _Provider(props) {
+        const value = useMemo(() => init(), []);
         return (
             <Context.Provider value={value}>{props.children}</Context.Provider>
         );
@@ -24,10 +17,10 @@ export function createContextProps<P>(init?: () => P): ContextProps<P> {
     function _use(): P {
         // @ts-ignore
         _checkAndPush(this);
-        return useValue();
+        return _useValue();
     }
 
-    function useValue(): P {
+    function _useValue(): P {
         const value = React.useContext(Context);
         if (value === EMPTY) {
             throw new Error(
@@ -37,13 +30,23 @@ export function createContextProps<P>(init?: () => P): ContextProps<P> {
         return value;
     }
 
-    return { Provider, use: _use, useValue } as ContextProps<P>;
+    return { use: _use, _Provider, _useValue } as ContextProps<P>;
 }
 
-export function provide<P>(ctxProps: ContextProps<P>[], dom: any) {
-    ctxProps?.forEach((cp) => {
-        const { Provider } = cp as any;
-        dom = <Provider>{dom}</Provider>;
+export function _provide<T>(
+    ctxProps: ContextProps<any>[],
+    Comp: React.FC<T>,
+): React.FC<T> {
+    if (ctxProps == null) {
+        return React.memo(Comp);
+    }
+
+    return React.memo((props) => {
+        let dom = <Comp {...props} />;
+        ctxProps.forEach((cp) => {
+            const { _Provider } = cp as any;
+            dom = <_Provider>{dom}</_Provider>;
+        });
+        return dom;
     });
-    return dom;
 }

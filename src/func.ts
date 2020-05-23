@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { track, trigger, stateV, Executor } from './core';
-import { Context, StateV, Watcher, WatchOptions } from './model';
+import { Context, ContextProps, StateV, Watcher, WatchOptions } from './model';
 import { DefaultProps, DepsReturnType, notEqual } from './common';
-import { ContextProps, provide } from './context';
+import { _provide } from './context';
 
 let currCtx: _Context<any>;
 
@@ -22,7 +22,7 @@ export function create<T extends object>(
     setup: (ctx: Context<T>) => (props: T) => React.ReactNode,
     config?: CreateConfig<T>,
 ) {
-    return React.memo((props: T) => {
+    const Comp = (props: T) => {
         const update = React.useReducer((s) => s + 1, 0)[1];
         const ctxRef = React.useRef<_Context<T>>(new _Context(props, update));
         const ctx = ctxRef.current;
@@ -50,11 +50,10 @@ export function create<T extends object>(
         if (!needUpdate && ctx._oldDom) {
             return ctx._oldDom;
         }
-        let newDom = executor.getter();
-        newDom = provide(config?.provide, newDom);
-        ctx._oldDom = newDom;
+        ctx._oldDom = executor.getter();
         return ctx._oldDom;
-    });
+    };
+    return _provide(config?.provide, Comp);
 }
 
 export function createS<T extends object>(
@@ -229,8 +228,8 @@ class _Context<T> {
             return ret;
         }
         currCtx._ctxPropsList?.forEach((ctxProps) => {
-            const { useValue } = ctxProps as any;
-            useValue();
+            const { _useValue } = ctxProps as any;
+            _useValue();
         });
         return this._use?.() ?? true;
     }

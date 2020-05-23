@@ -95,9 +95,29 @@ const ContextPropsV = createContextProps(() => {
     return { v, add };
 });
 
-const ContextPropsParentComp = createS(() => <ContextPropsChildComp />, {
-    provide: [ContextPropsX, ContextPropsV],
-});
+const ContextPropsParentComp = create(
+    (ctx) => {
+        setDebugComponentName('ContextPropsParentComp');
+        console.log(`${ctx.debugName} setup`);
+        const propsX = ContextPropsX.use();
+        const propsV = ContextPropsV.use();
+
+        function addAll() {
+            propsX.add();
+            propsV.add();
+        }
+        return (props) => {
+            console.log(`${ctx.debugName} render`);
+            return (
+                <>
+                    <button onClick={addAll}>addAll</button>
+                    <ContextPropsChildComp />
+                </>
+            );
+        };
+    },
+    { provide: [ContextPropsX, ContextPropsV] },
+);
 
 const ContextPropsChildComp = create((ctx) => {
     setDebugComponentName('ContextPropsChildComp');

@@ -24,3 +24,7 @@ export interface Watcher {
     readonly debugName: string;
     unwatch(): void;
 }
+
+export interface ContextProps<P> {
+    use(): P;
+}
