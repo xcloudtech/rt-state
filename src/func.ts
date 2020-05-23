@@ -2,6 +2,7 @@ import * as React from 'react';
 import { track, trigger, stateV, Executor } from './core';
 import { Context, StateV, Watcher, WatchOptions } from './model';
 import { DefaultProps, DepsReturnType, notEqual } from './common';
+import { ContextProps, provide } from './context';
 
 let currCtx: _Context<any>;
 
@@ -13,7 +14,15 @@ export function setDebugComponentName(name: string) {
 //  -- only be called once at the beginning of the whole lifecycle of the component.
 //  -- Create some states, or use watch/link functions or create any user defined functions or any normal (non-reactive) variables.
 //  -- return a render function, which can be used for rendering the components many times.
-export function create<T extends object>(setup: (ctx: Context<T>) => (props: T) => React.ReactNode): React.FC<T> {
+interface CreateConfig<T> {
+    provide?: ContextProps<any>[];
+    consume?: ContextProps<any>[];
+    defaultProps?: DefaultProps<T>;
+}
+export function create<T extends object>(
+    setup: (ctx: Context<T>) => (props: T) => React.ReactNode,
+    config?: CreateConfig<T>,
+): React.FC<T> {
     //////////////////////////////////////////////////
     const dom = React.memo((props: T) => {
         const update = React.useReducer((s) => s + 1, 0)[1];
@@ -27,6 +36,7 @@ export function create<T extends object>(setup: (ctx: Context<T>) => (props: T) 
             };
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
+        ctx._useConsume(config?.consume);
         ////////////////////////////////////////////////
         ctx.updateProps(props);
 
@@ -43,32 +53,45 @@ export function create<T extends object>(setup: (ctx: Context<T>) => (props: T) 
         if (!needUpdate && ctx._oldDom) {
             return ctx._oldDom;
         }
-        ctx._oldDom = executor.getter();
+        let newDom = executor.getter();
+        newDom = provide(config?.provide, newDom);
+        ctx._oldDom = newDom;
         return ctx._oldDom;
     });
     return dom as any;
 }
 
-export function createS<T extends object>(render: (props: T) => React.ReactNode, defaultProps?: DefaultProps<T>): React.FC<T> {
+export function createS<T extends object>(
+    render: (props: T) => React.ReactNode,
+    config?: CreateConfig<T>,
+): React.FC<T> {
     return create<T>((ctx) => {
-        if (defaultProps) {
-            ctx.defaultProps = defaultProps;
+        if (config?.defaultProps) {
+            ctx.defaultProps = config?.defaultProps;
         }
         return render;
-    });
+    }, config);
 }
 
 export function useHooks(cb: () => boolean | void) {
     if (!currCtx._isInSetup) {
-        throw new Error('"useHooks" can only be used within the setup function of the component.');
+        throw new Error(
+            '"useHooks" can only be used within the setup function of the component.',
+        );
     }
     if (currCtx._use != null) {
-        throw new Error('"useHooks" can only be used once within the component.');
+        throw new Error(
+            '"useHooks" can only be used once within the component.',
+        );
     }
     currCtx._use = cb;
 }
 
-export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateV<T> {
+export function link<T>(
+    getter: () => T,
+    setter?: (v: T) => void,
+    options?: WatchOptions,
+): StateV<T> {
     const linkId = {};
     let value: T;
 
@@ -93,11 +116,22 @@ export function link<T>(getter: () => T, setter?: (v: T) => void, options?: Watc
     } as StateV<T>;
 }
 
-export function watch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(cb: (values: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, oldValues: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>) => void | Promise<void>, deps: () => DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>, options?: WatchOptions) {
+export function watch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
+    cb: (
+        values: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>,
+        oldValues: DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>,
+    ) => void | Promise<void>,
+    deps: () => DepsReturnType<T1, T2, T3, T4, T5, T6, T7, T8, T9>,
+    options?: WatchOptions,
+) {
     return watchWithOption(cb, deps, options);
 }
 
-function watchWithOption(cb: (values, oldValues) => void | Promise<void>, deps: () => any[], options?: WatchOptions): Watcher {
+function watchWithOption(
+    cb: (values, oldValues) => void | Promise<void>,
+    deps: () => any[],
+    options?: WatchOptions,
+): Watcher {
     const compare = options?.compare ?? true;
     const isGlobal = options?.global;
     ////////////////////////////////////////
@@ -123,7 +157,9 @@ function watchWithOption(cb: (values, oldValues) => void | Promise<void>, deps: 
     // If it is not a global watcher.
     if (!isGlobal) {
         if (!currCtx || !currCtx._isInSetup) {
-            throw new Error('"watch" can only be called within the setup function of the current component, or use it out of the component and set it to be global.');
+            throw new Error(
+                '"watch" can only be called within the setup function of the current component, or use it out of the component and set it to be global.',
+            );
         }
         currCtx.addDisposeCallBack(() => executor.unwatch());
     }
@@ -139,6 +175,7 @@ function watchWithOption(cb: (values, oldValues) => void | Promise<void>, deps: 
 // tslint:disable-next-line:class-name
 class _Context<T> {
     private cleanup: Set<() => void>;
+    _ctxPropsMap: Map<ContextProps<any>, any>;
     _use: () => boolean | void;
     _oldDom: any;
     executor: Executor;
@@ -174,6 +211,21 @@ class _Context<T> {
     use() {
         return this._use?.() ?? true;
     }
+
+    _useConsume(contextStates: ContextProps<any>[]) {
+        this._ctxPropsMap = this._ctxPropsMap ?? new Map();
+        if (contextStates == null) {
+            return;
+        }
+        for (const state of contextStates) {
+            try {
+                const val = state.useContextProps();
+                this._ctxPropsMap.set(state, val);
+            } catch (e) {
+                throw new Error('There is no provider for this contextParam.');
+            }
+        }
+    }
     /////////////////////////
     // Just for debugging.
     get debugName(): string {
@@ -202,7 +254,9 @@ class _Context<T> {
     onDispose(cb: () => void) {
         this.addDisposeCallBack(cb);
         if (!this._isInSetup) {
-            throw new Error('"onDispose" can only be called within the setup function of the current component.');
+            throw new Error(
+                '"onDispose" can only be called within the setup function of the current component.',
+            );
         }
     }
 
@@ -211,5 +265,12 @@ class _Context<T> {
         if (this.executor) {
             this._updateView();
         }
+    }
+
+    peek<S>(contextState: ContextProps<S>): S {
+        if (!this._ctxPropsMap.has(contextState)) {
+            throw new Error('consume this contextState first.');
+        }
+        return this._ctxPropsMap.get(contextState);
     }
 }

@@ -1,5 +1,20 @@
 import * as React from 'react';
-import { create, state, stateV, link, watch, stateLongArray, LongArrayItem, setDebugComponentName, createS, useHooks, LongArray, StateV, batchUpdate } from '../'; // 'rt-state';
+import {
+    create,
+    state,
+    stateV,
+    link,
+    watch,
+    stateLongArray,
+    LongArrayItem,
+    setDebugComponentName,
+    createS,
+    useHooks,
+    LongArray,
+    StateV,
+    batchUpdate,
+    createContextProps,
+} from '../'; // 'rt-state';
 import { useState } from 'react';
 
 const delay = (ms: number) => {
@@ -38,6 +53,8 @@ export const ReactiveDemo = create((ctx) => {
         return (
             <div>
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
+                <ContextPropsParentComp />
+                <ContextPropsParentComp />
                 <WatchTestComp />
                 <ShowCountParent />
                 <button
@@ -65,6 +82,55 @@ export const ReactiveDemo = create((ctx) => {
         );
     };
 });
+const ContextPropsX = createContextProps<{ x: StateV<number>; add(): void }>(
+    () => {
+        const x = stateV(100);
+        function add() {
+            x.value++;
+        }
+        return { x, add };
+    },
+);
+
+const ContextPropsV = createContextProps<{ v: StateV<number>; add(): void }>(
+    () => {
+        const v = stateV(200);
+        function add() {
+            v.value++;
+        }
+        return { v, add };
+    },
+);
+
+const ContextPropsParentComp = createS(() => <ContextPropsChildComp />, {
+    provide: [ContextPropsX, ContextPropsV],
+});
+
+const ContextPropsChildComp = create(
+    (ctx) => {
+        setDebugComponentName('ContextPropsChildComp');
+        console.log(`${ctx.debugName} setup`);
+        const propsX = ctx.peek(ContextPropsX);
+
+        return (props) => {
+            console.log(`${ctx.debugName} render`);
+            const propsV = ctx.peek(ContextPropsV);
+            return (
+                <>
+                    <div>
+                        <button onClick={() => propsX.add()}>addX</button>
+                        {propsX.x.value}
+                    </div>
+                    <div>
+                        <button onClick={() => propsV.add()}>addV</button>
+                        {propsV.v.value}
+                    </div>
+                </>
+            );
+        };
+    },
+    { consume: [ContextPropsX, ContextPropsV] },
+);
 
 const WatchTestComp = create((ctx) => {
     setDebugComponentName('WatchTestComp');
@@ -115,39 +181,44 @@ const WatchTestComp = create((ctx) => {
     };
 });
 
-const ForceUpdateComp = create<{ stateFromParent: { parentNum: number } }>((ctx) => {
-    setDebugComponentName('ForceUpdateComp');
-    console.log(`${ctx.debugName} setup`);
+const ForceUpdateComp = create<{ stateFromParent: { parentNum: number } }>(
+    (ctx) => {
+        setDebugComponentName('ForceUpdateComp');
+        console.log(`${ctx.debugName} setup`);
 
-    let nonReactiveData;
-    watch(
-        () => {
-            nonReactiveData = ctx.props.stateFromParent.parentNum * 100 + 10;
-            if (nonReactiveData > 300 && nonReactiveData < 600) {
-                console.log(`nonReactiveData:${nonReactiveData}, the view will not be updated util nonReactiveData > 600`);
-                return;
-            }
-            ctx.forceUpdate();
-        },
-        () => [ctx.w().stateFromParent.parentNum],
-    );
-    return (props) => {
-        console.log(`${ctx.debugName} render`);
-        // This view doesn't depend on 'data.num', it won't change when data.num changes.
-        // so, we need 'ctx.forceUpdate'.
-        return (
-            <div>
-                <button
-                    onClick={() => {
-                        props.stateFromParent.parentNum++;
-                    }}>
-                    add
-                </button>
-                &nbsp;nonReactiveData:&nbsp;{nonReactiveData}
-            </div>
+        let nonReactiveData;
+        watch(
+            () => {
+                nonReactiveData =
+                    ctx.props.stateFromParent.parentNum * 100 + 10;
+                if (nonReactiveData > 300 && nonReactiveData < 600) {
+                    console.log(
+                        `nonReactiveData:${nonReactiveData}, the view will not be updated util nonReactiveData > 600`,
+                    );
+                    return;
+                }
+                ctx.forceUpdate();
+            },
+            () => [ctx.w().stateFromParent.parentNum],
         );
-    };
-});
+        return (props) => {
+            console.log(`${ctx.debugName} render`);
+            // This view doesn't depend on 'data.num', it won't change when data.num changes.
+            // so, we need 'ctx.forceUpdate'.
+            return (
+                <div>
+                    <button
+                        onClick={() => {
+                            props.stateFromParent.parentNum++;
+                        }}>
+                        add
+                    </button>
+                    &nbsp;nonReactiveData:&nbsp;{nonReactiveData}
+                </div>
+            );
+        };
+    },
+);
 
 const UseHookComp = create((ctx) => {
     setDebugComponentName('UseHookComp');
@@ -208,9 +279,11 @@ const TestBatchUpdateComp = create((ctx) => {
                 TestBatchUpdateComp&nbsp;
                 <button
                     onClick={() => {
-                        Array.from({ length: 1000 }, (v, k) => k).forEach((v) => {
-                            data.value += v;
-                        });
+                        Array.from({ length: 1000 }, (v, k) => k).forEach(
+                            (v) => {
+                                data.value += v;
+                            },
+                        );
                     }}>
                     add
                 </button>
@@ -245,12 +318,18 @@ const CreateSimpleComp = createS<{ name: string; val?: number }>(
             </span>
         );
     },
-    { val: 1000000 },
+    {
+        defaultProps: {
+            val: 1000000,
+        },
+    },
 );
 
 const ShowNumField = create<{ numV1: number; numV2: number }>((ctx) => {
     setDebugComponentName('ShowNumField');
-    console.log(`${ctx.debugName} setup: ${ctx.props.numV1} ${ctx.props.numV2}`);
+    console.log(
+        `${ctx.debugName} setup: ${ctx.props.numV1} ${ctx.props.numV2}`,
+    );
 
     const watcher = watch(
         async () => {
@@ -259,9 +338,13 @@ const ShowNumField = create<{ numV1: number; numV2: number }>((ctx) => {
                 watcher.unwatch();
                 return;
             }
-            console.log(`ShowNumField watch start: ${ctx.props.numV1}  ${ctx.props.numV2}...`);
+            console.log(
+                `ShowNumField watch start: ${ctx.props.numV1}  ${ctx.props.numV2}...`,
+            );
             await delay(2000);
-            console.log(`ShowNumField watch done: ${ctx.active} ${watcher.active}: ${ctx.props.numV1}  ${ctx.props.numV2}`);
+            console.log(
+                `ShowNumField watch done: ${ctx.active} ${watcher.active}: ${ctx.props.numV1}  ${ctx.props.numV2}`,
+            );
         },
         () => [ctx.w().numV1],
     );
@@ -269,7 +352,9 @@ const ShowNumField = create<{ numV1: number; numV2: number }>((ctx) => {
     // unwatch(watcher);
 
     ctx.onDispose(() => {
-        console.log(`${ctx.debugName} teardown: ${ctx.props.numV1}  ${ctx.props.numV2} `);
+        console.log(
+            `${ctx.debugName} teardown: ${ctx.props.numV1}  ${ctx.props.numV2} `,
+        );
     });
     return (props) => {
         // // "onDispose" can only be called within the setup function of the current component.
@@ -531,20 +616,22 @@ const LongArrayComp = create((ctx) => {
 
     console.log('watcher debug name:', watcher.debugName);
 
-    const LongArrayItemComp = create<{ item: LongArrayItem<number> }>((childCtx) => {
-        setDebugComponentName('LongArrayItemComp');
-        const itemValue = childCtx.props.item.value;
-        console.log(`${childCtx.debugName} ${itemValue} setup`);
+    const LongArrayItemComp = create<{ item: LongArrayItem<number> }>(
+        (childCtx) => {
+            setDebugComponentName('LongArrayItemComp');
+            const itemValue = childCtx.props.item.value;
+            console.log(`${childCtx.debugName} ${itemValue} setup`);
 
-        childCtx.onDispose(() => {
-            console.log(`${childCtx.debugName} ${itemValue} teardown`);
-        });
+            childCtx.onDispose(() => {
+                console.log(`${childCtx.debugName} ${itemValue} teardown`);
+            });
 
-        return (props) => {
-            console.log(`${childCtx.debugName} ${props.item.value} render`);
-            return <span>{props.item.value}&nbsp;</span>;
-        };
-    });
+            return (props) => {
+                console.log(`${childCtx.debugName} ${props.item.value} render`);
+                return <span>{props.item.value}&nbsp;</span>;
+            };
+        },
+    );
 
     return () => {
         // console.log('LongArrayComp render', JSON.stringify(arr.value));
@@ -564,8 +651,12 @@ const LongArrayComp = create((ctx) => {
                     change second item
                 </button>
                 <button onClick={() => (arr.values = [])}>reset</button>
-                <button onClick={() => arr.add(2, gKey++, gKey++)}>add two at index 2</button>
-                <button onClick={() => arr.remove(1, 2)}>remove two at index 1</button>
+                <button onClick={() => arr.add(2, gKey++, gKey++)}>
+                    add two at index 2
+                </button>
+                <button onClick={() => arr.remove(1, 2)}>
+                    remove two at index 1
+                </button>
                 <br />
                 {filteredArr.mapItems((item, idx) => {
                     // Optimized: it should be faster than using filterItems directly here.

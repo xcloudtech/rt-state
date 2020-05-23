@@ -19,7 +19,11 @@ let currExecutor: Executor = null;
 // eslint-disable-next-line no-new-func
 const g = typeof window === 'object' ? window : Function('return this')();
 function buildIn({ constructor }: Target) {
-    return isFn(constructor) && constructor.name in g && g[constructor.name] === constructor;
+    return (
+        isFn(constructor) &&
+        constructor.name in g &&
+        g[constructor.name] === constructor
+    );
 }
 
 // just to wrap any data within the value field of a state.
@@ -103,7 +107,9 @@ let depSetForBatchUpdate: Set<Executor> = null;
 
 export function batchUpdate(cb: () => void) {
     if (currExecutor) {
-        throw new Error('It can only be used within the Callback function of an event, like click event.');
+        throw new Error(
+            'It can only be used within the Callback function of an event, like click event.',
+        );
     }
     if (depSetForBatchUpdate != null) {
         throw new Error('recursively call "batchUpdate", wrong!');

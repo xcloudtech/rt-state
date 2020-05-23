@@ -1,4 +1,5 @@
 import { DefaultProps } from './common';
+import { ContextProps } from './context';
 
 export interface StateV<T> {
     value: T;
@@ -12,6 +13,7 @@ export interface Context<T> {
     w(): T;
     onDispose(cb: () => void): void;
     forceUpdate(): void;
+    peek<S>(contextProps: ContextProps<S>): S;
 }
 
 export interface WatchOptions {
