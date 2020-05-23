@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { _checkAndPush } from './func';
 
 const EMPTY: unique symbol = Symbol();
 
@@ -7,8 +8,7 @@ export interface ContextPropsProviderProps<P> {
 }
 
 export interface ContextProps<P> {
-    Provider: React.ComponentType<ContextPropsProviderProps<P>>;
-    useContextProps: () => P;
+    use(): P;
 }
 
 export function createContextProps<P>(init?: () => P): ContextProps<P> {
@@ -21,7 +21,13 @@ export function createContextProps<P>(init?: () => P): ContextProps<P> {
         );
     }
 
-    function useContextProps(): P {
+    function _use(): P {
+        // @ts-ignore
+        _checkAndPush(this);
+        return useValue();
+    }
+
+    function useValue(): P {
         const value = React.useContext(Context);
         if (value === EMPTY) {
             throw new Error(
@@ -31,12 +37,13 @@ export function createContextProps<P>(init?: () => P): ContextProps<P> {
         return value;
     }
 
-    return { Provider, useContextProps };
+    return { Provider, use: _use, useValue } as ContextProps<P>;
 }
 
 export function provide<P>(ctxProps: ContextProps<P>[], dom: any) {
     ctxProps?.forEach((cp) => {
-        dom = <cp.Provider>{dom}</cp.Provider>;
+        const { Provider } = cp as any;
+        dom = <Provider>{dom}</Provider>;
     });
     return dom;
 }

@@ -15,7 +15,7 @@ import {
     batchUpdate,
     createContextProps,
 } from '../'; // 'rt-state';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 const delay = (ms: number) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -82,55 +82,50 @@ export const ReactiveDemo = create((ctx) => {
         );
     };
 });
-const ContextPropsX = createContextProps<{ x: StateV<number>; add(): void }>(
-    () => {
-        const x = stateV(100);
-        function add() {
-            x.value++;
-        }
-        return { x, add };
-    },
-);
 
-const ContextPropsV = createContextProps<{ v: StateV<number>; add(): void }>(
-    () => {
-        const v = stateV(200);
-        function add() {
-            v.value++;
-        }
-        return { v, add };
-    },
-);
+const ContextPropsX = createContextProps(() => {
+    const x = stateV(100);
+    const add = () => x.value++;
+    return { x, add };
+});
+
+const ContextPropsV = createContextProps(() => {
+    const v = stateV(200);
+    const add = () => v.value++;
+    return { v, add };
+});
 
 const ContextPropsParentComp = createS(() => <ContextPropsChildComp />, {
     provide: [ContextPropsX, ContextPropsV],
 });
 
-const ContextPropsChildComp = create(
-    (ctx) => {
-        setDebugComponentName('ContextPropsChildComp');
-        console.log(`${ctx.debugName} setup`);
-        const propsX = ctx.peek(ContextPropsX);
+const ContextPropsChildComp = create((ctx) => {
+    setDebugComponentName('ContextPropsChildComp');
+    console.log(`${ctx.debugName} setup`);
+    const propsX = ContextPropsX.use();
+    const propsV = ContextPropsV.use();
+    useHooks(() => {
+        console.log('use Hooks');
+        const ref = useRef(1);
+    });
 
-        return (props) => {
-            console.log(`${ctx.debugName} render`);
-            const propsV = ctx.peek(ContextPropsV);
-            return (
-                <>
-                    <div>
-                        <button onClick={() => propsX.add()}>addX</button>
-                        {propsX.x.value}
-                    </div>
-                    <div>
-                        <button onClick={() => propsV.add()}>addV</button>
-                        {propsV.v.value}
-                    </div>
-                </>
-            );
-        };
-    },
-    { consume: [ContextPropsX, ContextPropsV] },
-);
+    return (props) => {
+        const ref = useRef(1);
+        console.log(`${ctx.debugName} render`);
+        return (
+            <>
+                <div>
+                    <button onClick={() => propsX.add()}>addX</button>
+                    {propsX.x.value}
+                </div>
+                <div>
+                    <button onClick={() => propsV.add()}>addV</button>
+                    {propsV.v.value}
+                </div>
+            </>
+        );
+    };
+});
 
 const WatchTestComp = create((ctx) => {
     setDebugComponentName('WatchTestComp');

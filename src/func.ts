@@ -16,15 +16,13 @@ export function setDebugComponentName(name: string) {
 //  -- return a render function, which can be used for rendering the components many times.
 interface CreateConfig<T> {
     provide?: ContextProps<any>[];
-    consume?: ContextProps<any>[];
     defaultProps?: DefaultProps<T>;
 }
 export function create<T extends object>(
     setup: (ctx: Context<T>) => (props: T) => React.ReactNode,
     config?: CreateConfig<T>,
-): React.FC<T> {
-    //////////////////////////////////////////////////
-    const dom = React.memo((props: T) => {
+) {
+    return React.memo((props: T) => {
         const update = React.useReducer((s) => s + 1, 0)[1];
         const ctxRef = React.useRef<_Context<T>>(new _Context(props, update));
         const ctx = ctxRef.current;
@@ -36,7 +34,6 @@ export function create<T extends object>(
             };
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
-        ctx._useConsume(config?.consume);
         ////////////////////////////////////////////////
         ctx.updateProps(props);
 
@@ -58,13 +55,12 @@ export function create<T extends object>(
         ctx._oldDom = newDom;
         return ctx._oldDom;
     });
-    return dom as any;
 }
 
 export function createS<T extends object>(
     render: (props: T) => React.ReactNode,
     config?: CreateConfig<T>,
-): React.FC<T> {
+) {
     return create<T>((ctx) => {
         if (config?.defaultProps) {
             ctx.defaultProps = config?.defaultProps;
@@ -85,6 +81,23 @@ export function useHooks(cb: () => boolean | void) {
         );
     }
     currCtx._use = cb;
+    const ret = cb();
+    currCtx._useReturnFunc = () => ret;
+}
+
+export function _checkAndPush<P>(ctxProps: ContextProps<P>) {
+    if (!currCtx._isInSetup) {
+        throw new Error(
+            '"ContextProps.use()" can only be used within the setup function of the component.',
+        );
+    }
+    if (currCtx._use != null) {
+        throw new Error(
+            '"ContextProps.use()" can only be used before "useHooks".',
+        );
+    }
+    currCtx._ctxPropsList = currCtx._ctxPropsList ?? [];
+    currCtx._ctxPropsList.push(ctxProps);
 }
 
 export function link<T>(
@@ -175,8 +188,9 @@ function watchWithOption(
 // tslint:disable-next-line:class-name
 class _Context<T> {
     private cleanup: Set<() => void>;
-    _ctxPropsMap: Map<ContextProps<any>, any>;
+    _ctxPropsList: ContextProps<any>[];
     _use: () => boolean | void;
+    _useReturnFunc: () => boolean | void;
     _oldDom: any;
     executor: Executor;
     _compDebugName: string;
@@ -209,22 +223,16 @@ class _Context<T> {
         }
     }
     use() {
+        if (this._useReturnFunc) {
+            const ret = this._useReturnFunc();
+            this._useReturnFunc = null;
+            return ret;
+        }
+        currCtx._ctxPropsList?.forEach((ctxProps) => {
+            const { useValue } = ctxProps as any;
+            useValue();
+        });
         return this._use?.() ?? true;
-    }
-
-    _useConsume(contextStates: ContextProps<any>[]) {
-        this._ctxPropsMap = this._ctxPropsMap ?? new Map();
-        if (contextStates == null) {
-            return;
-        }
-        for (const state of contextStates) {
-            try {
-                const val = state.useContextProps();
-                this._ctxPropsMap.set(state, val);
-            } catch (e) {
-                throw new Error('There is no provider for this contextParam.');
-            }
-        }
     }
     /////////////////////////
     // Just for debugging.
@@ -265,12 +273,5 @@ class _Context<T> {
         if (this.executor) {
             this._updateView();
         }
-    }
-
-    peek<S>(contextState: ContextProps<S>): S {
-        if (!this._ctxPropsMap.has(contextState)) {
-            throw new Error('consume this contextState first.');
-        }
-        return this._ctxPropsMap.get(contextState);
     }
 }
