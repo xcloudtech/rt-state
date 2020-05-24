@@ -40,7 +40,7 @@ export function create<T extends object>(
         if (!executor) {
             ctx._isInSetup = true;
             if (config?.defaultProps) {
-                ctx.defaultProps = Object.freeze(config?.defaultProps);
+                ctx._defaultProps = Object.freeze(config?.defaultProps);
             }
             const render = setup(ctx);
             ctx._isInSetup = false;
@@ -58,8 +58,8 @@ export function create<T extends object>(
     return _provide(config?.providers, Comp);
 }
 
-export function createS<T extends object>(render: (props: T) => React.ReactNode, config?: CreateConfig<T>) {
-    return create<T>((ctx) => render, config);
+export function createS<T extends object>(Comp: React.FC<T>, config?: CreateConfig<T>) {
+    return create<T>((ctx) => Comp, config);
 }
 
 export function useHooks(cb: () => boolean | void) {
@@ -230,9 +230,6 @@ class _Context<T> {
             return { ...this._defaultProps, ...this._props };
         }
         return this._props;
-    }
-    set defaultProps(value: DefaultProps<T>) {
-        this._defaultProps = value;
     }
     // can be used to watch any changes of any prop in `watch` function.
     // like: ctx.w().prop1
