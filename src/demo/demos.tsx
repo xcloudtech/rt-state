@@ -53,8 +53,7 @@ export const ReactiveDemo = create((ctx) => {
         return (
             <div>
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
-                <ContextPropsParentComp />
-                <ContextPropsParentComp />
+                <ProviderDemoComp />
                 <WatchTestComp />
                 <ShowCountParent />
                 <button
@@ -83,6 +82,16 @@ export const ReactiveDemo = create((ctx) => {
     };
 });
 
+//////////////////////////
+const ProviderDemoComp = () => {
+    return (
+        <>
+            <ProviderDemoParentComp />
+            <ProviderDemoParentComp />
+        </>
+    );
+};
+
 const globalX = (() => {
     const x = stateV(100);
     const add = () => x.value++;
@@ -94,34 +103,42 @@ const ProviderX = createProvider(() => {
     const add = () => x.value++;
     return { x, add };
 });
+const ProviderV = createProvider(() => {
+    const x = stateV(200);
+    const add = () => x.value++;
+    return { x, add };
+});
 
-const ContextPropsParentComp = create(
+const ProviderDemoParentComp = create(
     (ctx) => {
-        setDebugComponentName('ContextPropsParentComp');
+        setDebugComponentName('ProviderDemoParentComp');
         console.log(`${ctx.debugName} setup`);
         const providerX = ProviderX.use();
+        const providerV = ProviderV.use();
 
         function addAll() {
             globalX.add();
             providerX.add();
+            providerV.add();
         }
         return (props) => {
             console.log(`${ctx.debugName} render`);
             return (
                 <>
-                    <button onClick={addAll}>addBoth</button>
-                    <ContextPropsChildComp />
+                    <button onClick={addAll}>addAll</button>
+                    <ProviderDemoChildComp />
                 </>
             );
         };
     },
-    { providers: [ProviderX] },
+    { providers: [ProviderX, ProviderV] },
 );
 
-const ContextPropsChildComp = create((ctx) => {
-    setDebugComponentName('ContextPropsChildComp');
+const ProviderDemoChildComp = create((ctx) => {
+    setDebugComponentName('ProviderDemoChildComp');
     console.log(`${ctx.debugName} setup`);
     const providerX = ProviderX.use();
+    const providerV = ProviderV.use();
     useHooks(() => {
         console.log('use Hooks');
         const ref = useRef(1);
@@ -142,10 +159,17 @@ const ContextPropsChildComp = create((ctx) => {
                     </button>
                     {providerX.x.value}
                 </div>
+                <div>
+                    <button onClick={() => providerV.add()}>
+                        addToProviderV
+                    </button>
+                    {providerV.x.value}
+                </div>
             </>
         );
     };
 });
+//////////////////////////
 
 const WatchTestComp = create((ctx) => {
     setDebugComponentName('WatchTestComp');
