@@ -25,6 +25,6 @@ export interface Watcher {
     unwatch(): void;
 }
 
-export interface ContextProps<P> {
+export interface Provider<P> {
     use(): P;
 }

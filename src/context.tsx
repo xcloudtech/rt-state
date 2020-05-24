@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
 import { _checkAndPush } from './func';
-import { ContextProps } from './model';
+import { Provider } from './model';
 
 const EMPTY: unique symbol = Symbol();
 
-export function createContextProps<P>(init: () => P): ContextProps<P> {
-    const Context = React.createContext<P | typeof EMPTY>(EMPTY);
+export function createProvider<T>(init: () => T): Provider<T> {
+    const Context = React.createContext<T | typeof EMPTY>(EMPTY);
 
     function _Provider(props) {
         const value = useMemo(() => init(), []);
@@ -14,37 +14,35 @@ export function createContextProps<P>(init: () => P): ContextProps<P> {
         );
     }
 
-    function _use(): P {
+    function _use(): T {
         // @ts-ignore
         _checkAndPush(this);
         return _useValue();
     }
 
-    function _useValue(): P {
+    function _useValue(): T {
         const value = React.useContext(Context);
         if (value === EMPTY) {
-            throw new Error(
-                'Component must be wrapped with <Container.Provider>',
-            );
+            throw new Error('Cannot find provider for it.');
         }
         return value;
     }
 
-    return { use: _use, _Provider, _useValue } as ContextProps<P>;
+    return { use: _use, _Provider, _useValue } as Provider<T>;
 }
 
 export function _provide<T>(
-    ctxProps: ContextProps<any>[],
+    providers: Provider<any>[],
     Comp: React.FC<T>,
 ): React.FC<T> {
-    if (ctxProps == null) {
+    if (providers == null) {
         return React.memo(Comp);
     }
 
     return React.memo((props) => {
         let dom = <Comp {...props} />;
-        ctxProps.forEach((cp) => {
-            const { _Provider } = cp as any;
+        providers.forEach((p) => {
+            const { _Provider } = p as any;
             dom = <_Provider>{dom}</_Provider>;
         });
         return dom;

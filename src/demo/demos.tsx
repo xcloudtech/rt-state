@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useRef, useState } from 'react';
 import {
     create,
     state,
@@ -13,9 +14,8 @@ import {
     LongArray,
     StateV,
     batchUpdate,
-    createContextProps,
+    createProvider,
 } from '../'; // 'rt-state';
-import { useRef, useState } from 'react';
 
 const delay = (ms: number) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -83,45 +83,45 @@ export const ReactiveDemo = create((ctx) => {
     };
 });
 
-const propsX = (() => {
+const globalX = (() => {
     const x = stateV(100);
     const add = () => x.value++;
     return { x, add };
 })();
 
-const ContextPropsV = createContextProps(() => {
-    const v = stateV(200);
-    const add = () => v.value++;
-    return { v, add };
+const ProviderX = createProvider(() => {
+    const x = stateV(200);
+    const add = () => x.value++;
+    return { x, add };
 });
 
 const ContextPropsParentComp = create(
     (ctx) => {
         setDebugComponentName('ContextPropsParentComp');
         console.log(`${ctx.debugName} setup`);
-        const propsV = ContextPropsV.use();
+        const providerX = ProviderX.use();
 
         function addAll() {
-            propsX.add();
-            propsV.add();
+            globalX.add();
+            providerX.add();
         }
         return (props) => {
             console.log(`${ctx.debugName} render`);
             return (
                 <>
-                    <button onClick={addAll}>addAll</button>
+                    <button onClick={addAll}>addBoth</button>
                     <ContextPropsChildComp />
                 </>
             );
         };
     },
-    { provider: [ContextPropsV] },
+    { providers: [ProviderX] },
 );
 
 const ContextPropsChildComp = create((ctx) => {
     setDebugComponentName('ContextPropsChildComp');
     console.log(`${ctx.debugName} setup`);
-    const propsV = ContextPropsV.use();
+    const providerX = ProviderX.use();
     useHooks(() => {
         console.log('use Hooks');
         const ref = useRef(1);
@@ -133,12 +133,14 @@ const ContextPropsChildComp = create((ctx) => {
         return (
             <>
                 <div>
-                    <button onClick={() => propsX.add()}>addX</button>
-                    {propsX.x.value}
+                    <button onClick={() => globalX.add()}>addToGlobalX</button>
+                    {globalX.x.value}
                 </div>
                 <div>
-                    <button onClick={() => propsV.add()}>addV</button>
-                    {propsV.v.value}
+                    <button onClick={() => providerX.add()}>
+                        addToProviderX
+                    </button>
+                    {providerX.x.value}
                 </div>
             </>
         );

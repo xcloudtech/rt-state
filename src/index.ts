@@ -6,7 +6,7 @@ import {
     link,
     setDebugComponentName,
 } from './func';
-import { createContextProps } from './context';
+import { createProvider } from './context';
 import { state, stateV, batchUpdate } from './core';
 import { StateV, Context, Watcher, WatchOptions } from './model';
 import { stateLongArray, LongArray, LongArrayItem } from './long_array';
@@ -17,7 +17,7 @@ export {
     stateLongArray,
     create,
     createS,
-    createContextProps,
+    createProvider,
     useHooks,
     watch,
     link,

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { track, trigger, stateV, Executor } from './core';
-import { Context, ContextProps, StateV, Watcher, WatchOptions } from './model';
+import { Context, Provider, StateV, Watcher, WatchOptions } from './model';
 import { DefaultProps, DepsReturnType, notEqual } from './common';
 import { _provide } from './context';
 
@@ -15,7 +15,7 @@ export function setDebugComponentName(name: string) {
 //  -- Create some states, or use watch/link functions or create any user defined functions or any normal (non-reactive) variables.
 //  -- return a render function, which can be used for rendering the components many times.
 interface CreateConfig<T> {
-    provider?: ContextProps<any>[];
+    providers?: Provider<any>[];
     defaultProps?: DefaultProps<T>;
 }
 export function create<T extends object>(
@@ -53,7 +53,7 @@ export function create<T extends object>(
         ctx._oldDom = executor.getter();
         return ctx._oldDom;
     };
-    return _provide(config?.provider, Comp);
+    return _provide(config?.providers, Comp);
 }
 
 export function createS<T extends object>(
@@ -84,19 +84,17 @@ export function useHooks(cb: () => boolean | void) {
     currCtx._useReturnFunc = () => ret;
 }
 
-export function _checkAndPush<P>(ctxProps: ContextProps<P>) {
+export function _checkAndPush<P>(provider: Provider<P>) {
     if (!currCtx._isInSetup) {
         throw new Error(
-            '"ContextProps.use()" can only be used within the setup function of the component.',
+            '"Provider.use()" can only be used within the setup function of the component.',
         );
     }
     if (currCtx._use != null) {
-        throw new Error(
-            '"ContextProps.use()" can only be used before "useHooks".',
-        );
+        throw new Error('"Provider.use()" can only be used before "useHooks".');
     }
-    currCtx._ctxPropsList = currCtx._ctxPropsList ?? [];
-    currCtx._ctxPropsList.push(ctxProps);
+    currCtx._providers = currCtx._providers ?? [];
+    currCtx._providers.push(provider);
 }
 
 export function link<T>(
@@ -187,7 +185,7 @@ function watchWithOption(
 // tslint:disable-next-line:class-name
 class _Context<T> {
     private cleanup: Set<() => void>;
-    _ctxPropsList: ContextProps<any>[];
+    _providers: Provider<any>[];
     _use: () => boolean | void;
     _useReturnFunc: () => boolean | void;
     _oldDom: any;
@@ -227,8 +225,8 @@ class _Context<T> {
             this._useReturnFunc = null;
             return ret;
         }
-        currCtx._ctxPropsList?.forEach((ctxProps) => {
-            const { _useValue } = ctxProps as any;
+        currCtx._providers?.forEach((p) => {
+            const { _useValue } = p as any;
             _useValue();
         });
         return this._use?.() ?? true;
