@@ -20,15 +20,9 @@ export interface LongArray<T> {
     readonly items: LongArrayItem<T>[];
     getItem(idx: number): LongArrayItem<T>;
     setItem(idx: number, item: LongArrayItem<T>);
-    filterItems(
-        filter: (item: LongArrayItem<T>, index: number) => boolean,
-    ): LongArray<T>;
+    filterItems(filter: (item: LongArrayItem<T>, index: number) => boolean): LongArray<T>;
     mapItems<P>(map: (item: LongArrayItem<T>, index: number) => P): P[];
-    spliceItems(
-        start: number,
-        deleteCount: number,
-        ...items: LongArrayItem<T>[]
-    );
+    spliceItems(start: number, deleteCount: number, ...items: LongArrayItem<T>[]);
 }
 
 class _LongArray<T> {
@@ -90,9 +84,7 @@ class _LongArray<T> {
     setItem(idx: number, item: LongArrayItem<T>) {
         this.set(idx, item.value);
     }
-    filterItems(
-        filter: (item: LongArrayItem<T>, index: number) => boolean,
-    ): LongArray<T> {
+    filterItems(filter: (item: LongArrayItem<T>, index: number) => boolean): LongArray<T> {
         const value = this._state.value;
         const newValue = value.filter(filter);
         if (newValue.length !== value.length) {
@@ -105,11 +97,7 @@ class _LongArray<T> {
     mapItems<P>(map: (item: LongArrayItem<T>, index: number) => P): P[] {
         return this._state.value.map(map);
     }
-    spliceItems(
-        start: number,
-        deleteCount: number,
-        ...items: LongArrayItem<T>[]
-    ) {
+    spliceItems(start: number, deleteCount: number, ...items: LongArrayItem<T>[]) {
         this._state.value.splice(start, deleteCount, ...items);
         this.refresh();
     }

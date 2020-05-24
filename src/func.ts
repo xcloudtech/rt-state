@@ -32,7 +32,6 @@ export function create<T extends object>(
                 ctx.dispose();
                 ctxRef.current = null;
             };
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
         ////////////////////////////////////////////////
         ctx.updateProps(props);
@@ -40,6 +39,9 @@ export function create<T extends object>(
         let { executor } = ctx;
         if (!executor) {
             ctx._isInSetup = true;
+            if (config?.defaultProps) {
+                ctx.defaultProps = Object.freeze(config?.defaultProps);
+            }
             const render = setup(ctx);
             ctx._isInSetup = false;
             executor = new Executor(() => render(ctx.props), update);
@@ -56,28 +58,16 @@ export function create<T extends object>(
     return _provide(config?.providers, Comp);
 }
 
-export function createS<T extends object>(
-    render: (props: T) => React.ReactNode,
-    config?: CreateConfig<T>,
-) {
-    return create<T>((ctx) => {
-        if (config?.defaultProps) {
-            ctx.defaultProps = config?.defaultProps;
-        }
-        return render;
-    }, config);
+export function createS<T extends object>(render: (props: T) => React.ReactNode, config?: CreateConfig<T>) {
+    return create<T>((ctx) => render, config);
 }
 
 export function useHooks(cb: () => boolean | void) {
     if (!currCtx._isInSetup) {
-        throw new Error(
-            '"useHooks" can only be used within the setup function of the component.',
-        );
+        throw new Error('"useHooks" can only be used within the setup function of the component.');
     }
     if (currCtx._use != null) {
-        throw new Error(
-            '"useHooks" can only be used once within the component.',
-        );
+        throw new Error('"useHooks" can only be used once within the component.');
     }
     currCtx._use = cb;
     const ret = cb() ?? true;
@@ -86,9 +76,7 @@ export function useHooks(cb: () => boolean | void) {
 
 export function _checkAndPush<P>(provider: Provider<P>) {
     if (!currCtx._isInSetup) {
-        throw new Error(
-            '"Provider.use()" can only be used within the setup function of the component.',
-        );
+        throw new Error('"Provider.use()" can only be used within the setup function of the component.');
     }
     if (currCtx._use != null) {
         throw new Error('"Provider.use()" can only be used before "useHooks".');
@@ -97,11 +85,7 @@ export function _checkAndPush<P>(provider: Provider<P>) {
     currCtx._providers.push(provider);
 }
 
-export function link<T>(
-    getter: () => T,
-    setter?: (v: T) => void,
-    options?: WatchOptions,
-): StateV<T> {
+export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateV<T> {
     const linkId = {};
     let value: T;
 
@@ -259,9 +243,7 @@ class _Context<T> {
     onDispose(cb: () => void) {
         this.addDisposeCallBack(cb);
         if (!this._isInSetup) {
-            throw new Error(
-                '"onDispose" can only be called within the setup function of the current component.',
-            );
+            throw new Error('"onDispose" can only be called within the setup function of the current component.');
         }
     }
 

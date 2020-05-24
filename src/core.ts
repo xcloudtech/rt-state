@@ -4,27 +4,13 @@ import { isFn, isObj } from './common';
 
 type Key = string | number;
 type Target = object;
-type Proxy = object;
 
 type ExecutorSet = Set<Executor>;
 type KeyExecutorSet = Map<Key, ExecutorSet>;
 
 const targetMap = new WeakMap<Target, KeyExecutorSet>();
-const targetToProxy = new WeakMap<Target, Proxy>();
-const proxyToTarget = new WeakMap<Proxy, Target>();
 
 let currExecutor: Executor = null;
-
-// @ts-ignore
-// eslint-disable-next-line no-new-func
-const g = typeof window === 'object' ? window : Function('return this')();
-function buildIn({ constructor }: Target) {
-    return (
-        isFn(constructor) &&
-        constructor.name in g &&
-        g[constructor.name] === constructor
-    );
-}
 
 // just to wrap any data within the value field of a state.
 // can be used for any data, especially for number and string, or an array.
@@ -35,33 +21,20 @@ export function stateV<T>(value?: T): StateV<T> {
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
 export function state<T extends Target>(obj: T): T {
-    if (proxyToTarget.has(obj) || !buildIn(obj)) {
-        return obj;
+    if (targetMap.has(obj)) {
+        throw new Error('can not call state function twice for the same obj.');
     }
-    let proxy = targetToProxy.get(obj);
-    if (proxy) {
-        return proxy as T;
-    }
-    proxy = getProxy(obj, handlers);
-
-    targetToProxy.set(obj, proxy);
-    proxyToTarget.set(proxy, obj);
     targetMap.set(obj, new Map() as KeyExecutorSet);
-
-    return proxy as T;
+    return getProxy(obj, handlers);
 }
 
 const handlers = {
     get(target: Target, key: Key) {
         const result = Reflect.get(target, key);
-        const proxy = targetToProxy.get(result);
         track(target, key);
-        return proxy ?? result;
+        return result;
     },
     set(target: Target, key: Key, value: any) {
-        if (isObj(value)) {
-            value = proxyToTarget.get(value) ?? value;
-        }
         const oldValue = Reflect.get(target, key);
         if (value === oldValue) {
             return true;
@@ -107,9 +80,7 @@ let depSetForBatchUpdate: Set<Executor> = null;
 
 export function batchUpdate(cb: () => void) {
     if (currExecutor) {
-        throw new Error(
-            'It can only be used within the Callback function of an event, like click event.',
-        );
+        throw new Error('It can only be used within the Callback function of an event, like click event.');
     }
     if (depSetForBatchUpdate != null) {
         throw new Error('recursively call "batchUpdate", wrong!');

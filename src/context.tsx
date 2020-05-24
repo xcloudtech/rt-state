@@ -9,9 +9,7 @@ export function createProvider<T>(init: () => T): Provider<T> {
 
     function _Provider(props) {
         const value = useMemo(() => init(), []);
-        return (
-            <Context.Provider value={value}>{props.children}</Context.Provider>
-        );
+        return <Context.Provider value={value}>{props.children}</Context.Provider>;
     }
 
     function _use(): T {
@@ -31,10 +29,7 @@ export function createProvider<T>(init: () => T): Provider<T> {
     return { use: _use, _Provider, _useValue } as Provider<T>;
 }
 
-export function _provide<T>(
-    providers: Provider<any>[],
-    Comp: React.FC<T>,
-): React.FC<T> {
+export function _provide<T>(providers: Provider<any>[], Comp: React.FC<T>): React.FC<T> {
     if (providers == null) {
         return React.memo(Comp);
     }

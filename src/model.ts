@@ -1,5 +1,3 @@
-import { DefaultProps } from './common';
-
 export interface StateV<T> {
     value: T;
 }
@@ -8,7 +6,6 @@ export interface Context<T> {
     readonly debugName: string;
     active: boolean;
     readonly props: T;
-    defaultProps: DefaultProps<T>;
     w(): T;
     onDispose(cb: () => void): void;
     forceUpdate(): void;
