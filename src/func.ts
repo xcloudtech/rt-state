@@ -80,7 +80,7 @@ export function useHooks(cb: () => boolean | void) {
         );
     }
     currCtx._use = cb;
-    const ret = cb();
+    const ret = cb() ?? true;
     currCtx._useReturnFunc = () => ret;
 }
 
