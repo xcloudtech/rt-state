@@ -2,10 +2,8 @@ import React, { useMemo } from 'react';
 import { _checkAndPush } from './func';
 import { Provider } from './model';
 
-const EMPTY: unique symbol = Symbol();
-
 export function createProvider<T>(init: () => T): Provider<T> {
-    const Context = React.createContext<T | typeof EMPTY>(EMPTY);
+    const Context = React.createContext<T>(null);
 
     function _Provider(props) {
         const value = useMemo(() => init(), []);
@@ -19,11 +17,7 @@ export function createProvider<T>(init: () => T): Provider<T> {
     }
 
     function _useValue(): T {
-        const value = React.useContext(Context);
-        if (value === EMPTY) {
-            throw new Error('Cannot find provider for it.');
-        }
-        return value;
+        return React.useContext(Context);
     }
 
     return { use: _use, _Provider, _useValue } as Provider<T>;
