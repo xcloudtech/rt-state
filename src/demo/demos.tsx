@@ -139,16 +139,22 @@ const ProviderDemoChildComp = create((ctx) => {
     console.log(`${ctx.debugName} setup`);
     const providerX = ProviderX.use();
     const providerV = ProviderV.use();
-    useHooks(() => {
-        console.log('use Hooks');
-        const ref = useRef(1);
-    });
+    // useHooks(() => {
+    //     console.log('use Hooks');
+    //     const ref = useRef(1);
+    // });
 
     return (props) => {
-        const ref = useRef(1);
+        const [x, setX] = useState(777);
+        function addX() {
+            setX(x + 1);
+        }
+
         console.log(`${ctx.debugName} render`);
         return (
             <>
+                <button onClick={addX}>addX</button>&nbsp;
+                <span>{x}</span>
                 <div>
                     <button onClick={globalX.add}>addToGlobalX</button>
                     {globalX.x.value}

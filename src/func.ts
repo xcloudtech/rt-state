@@ -43,12 +43,14 @@ export function create<T extends object>(
                 ctx._defaultProps = Object.freeze(config?.defaultProps);
             }
             const render = setup(ctx);
-            ctx._isInSetup = false;
             executor = new Executor(() => render(ctx.props), update);
             ctx.addDisposeCallBack(() => executor.unwatch());
             ctx.executor = executor;
         }
         const needUpdate = ctx.use();
+        if (ctx._isInSetup) {
+            ctx._isInSetup = false;
+        }
         if (!needUpdate && ctx._oldDom) {
             return ctx._oldDom;
         }
@@ -70,8 +72,9 @@ export function useHooks(cb: () => boolean | void) {
         throw new Error('"useHooks" can only be used once within the component.');
     }
     currCtx._use = cb;
-    const ret = cb() ?? true;
-    currCtx._useReturnFunc = () => ret;
+    cb();
+    // need update.
+    return true;
 }
 
 export function _checkAndPush<P>(provider: Provider<P>) {
@@ -171,7 +174,6 @@ class _Context<T> {
     private cleanup: Set<() => void>;
     _providers: Provider<any>[];
     _use: () => boolean | void;
-    _useReturnFunc: () => boolean | void;
     _oldDom: any;
     executor: Executor;
     _compDebugName: string;
@@ -204,10 +206,8 @@ class _Context<T> {
         }
     }
     use() {
-        if (this._useReturnFunc) {
-            const ret = this._useReturnFunc();
-            this._useReturnFunc = null;
-            return ret;
+        if (this._isInSetup) {
+            return true;
         }
         currCtx._providers?.forEach((p) => {
             const { _useValue } = p as any;
