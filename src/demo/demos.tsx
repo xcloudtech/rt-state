@@ -113,27 +113,23 @@ const ProviderDemoComp = createS(
     { providers: [] },
 );
 
-const ProviderDemoParentComp = create(
-    (ctx) => {
-        setDebugComponentName('ProviderDemoParentComp');
-        console.log(`${ctx.debugName} setup`);
-        const providerX = ProviderX.use();
-        const providerV = ProviderV.use();
-
+const ProviderDemoParentComp = createS(
+    (props) => {
+        const providerX = ProviderX.useValue();
+        const providerV = ProviderV.useValue();
         function addAll() {
             globalX.add();
             providerX.add();
             providerV.add();
         }
-        return (props) => {
-            console.log(`${ctx.debugName} render`);
-            return (
-                <>
-                    <button onClick={addAll}>addAll</button>
-                    <ProviderDemoChildComp />
-                </>
-            );
-        };
+        console.log(`ProviderDemoParentComp render`);
+        return (
+            <>
+                <button onClick={addAll}>addAll</button>
+                <span>vv:{providerV.x.value}</span>
+                <ProviderDemoChildComp />
+            </>
+        );
     },
     { providers: [ProviderX.init(999999), ProviderV] },
 );

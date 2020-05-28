@@ -210,8 +210,8 @@ class _Context<T> {
             return true;
         }
         currCtx._providers?.forEach((p) => {
-            const { _useValue } = p as any;
-            _useValue();
+            const { useValue } = p as any;
+            useValue();
         });
         return this._use?.() ?? true;
     }

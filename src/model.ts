@@ -24,5 +24,8 @@ export interface Watcher {
 
 export interface Provider<P, I> {
     init(value: I): Provider<P, I>;
+    // used in setup function
     use(): P;
+    // used in render function
+    useValue(): P;
 }

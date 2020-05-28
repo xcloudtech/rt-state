@@ -11,21 +11,21 @@ export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I>
         return <Context.Provider value={value}>{props.children}</Context.Provider>;
     }
 
-    function _useValue(): T {
+    function useValue(): T {
         return React.useContext(Context);
     }
 
     function use(): T {
         // @ts-ignore
         _checkAndPush(this);
-        return _useValue();
+        return useValue();
     }
 
     function init(value: I) {
         return { ...provider, initValue: value } as Provider<T, I>;
     }
 
-    const provider = { use, init, _Provider, _useValue };
+    const provider = { use, init, useValue, _Provider };
 
     return { ...provider, initValue: null } as Provider<T, I>;
 }
