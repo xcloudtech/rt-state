@@ -78,14 +78,13 @@ export function useHooks(cb: () => boolean | void) {
 }
 
 export function _checkAndPush<P>(provider: Provider<P, any>) {
-    if (!currCtx._isInSetup) {
-        throw new Error('"Provider.use()" can only be used within the setup function of the component.');
+    if (currCtx._isInSetup) {
+        if (currCtx._use != null) {
+            throw new Error('"Provider.use()" can only be used before "useHooks" if it\'s in setup function.');
+        }
+        currCtx._providers = currCtx._providers ?? [];
+        currCtx._providers.push(provider);
     }
-    if (currCtx._use != null) {
-        throw new Error('"Provider.use()" can only be used before "useHooks".');
-    }
-    currCtx._providers = currCtx._providers ?? [];
-    currCtx._providers.push(provider);
 }
 
 export function _isInSetup() {
@@ -214,8 +213,7 @@ class _Context<T> {
             return true;
         }
         currCtx._providers?.forEach((p) => {
-            const { useValue } = p as any;
-            useValue();
+            p.use();
         });
         return this._use?.() ?? true;
     }

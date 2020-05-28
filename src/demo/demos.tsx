@@ -115,8 +115,8 @@ const ProviderDemoComp = createS(
 
 const ProviderDemoParentComp = createS(
     (props) => {
-        const providerX = ProviderX.useValue();
-        const providerV = ProviderV.useValue();
+        const providerX = ProviderX.use();
+        const providerV = ProviderV.use();
         function addAll() {
             globalX.add();
             providerX.add();

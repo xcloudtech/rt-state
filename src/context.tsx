@@ -11,26 +11,17 @@ export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I>
         return <Context.Provider value={value}>{props.children}</Context.Provider>;
     }
 
-    function useValue(skipCheck?: boolean): T {
-        if (!skipCheck) {
-            if (_isInSetup()) {
-                throw new Error('useValue can only be called in render function.');
-            }
-        }
-        return React.useContext(Context);
-    }
-
     function use(): T {
         // @ts-ignore
         _checkAndPush(this);
-        return useValue(true);
+        return React.useContext(Context);
     }
 
     function init(value: I) {
         return { ...provider, initValue: value } as Provider<T, I>;
     }
 
-    const provider = { use, init, useValue, _Provider };
+    const provider = { use, init, _Provider };
 
     return { ...provider, initValue: null } as Provider<T, I>;
 }
