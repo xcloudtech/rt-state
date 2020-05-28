@@ -88,6 +88,10 @@ export function _checkAndPush<P>(provider: Provider<P, any>) {
     currCtx._providers.push(provider);
 }
 
+export function _isInSetup() {
+    return currCtx._isInSetup;
+}
+
 export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateV<T> {
     const linkId = {};
     let value: T;

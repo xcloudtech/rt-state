@@ -1,5 +1,5 @@
 import React, { Context, useMemo } from 'react';
-import { _checkAndPush } from './func';
+import { _checkAndPush, _isInSetup } from './func';
 import { Provider } from './model';
 
 export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I> {
@@ -11,14 +11,19 @@ export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I>
         return <Context.Provider value={value}>{props.children}</Context.Provider>;
     }
 
-    function useValue(): T {
+    function useValue(skipCheck?: boolean): T {
+        if (!skipCheck) {
+            if (_isInSetup()) {
+                throw new Error('useValue can only be called in render function.');
+            }
+        }
         return React.useContext(Context);
     }
 
     function use(): T {
         // @ts-ignore
         _checkAndPush(this);
-        return useValue();
+        return useValue(true);
     }
 
     function init(value: I) {
