@@ -52,9 +52,11 @@ export function create<T extends object>(
             ctx._isInSetup = false;
         }
         if (!needUpdate && ctx._oldDom) {
+            currCtx = null;
             return ctx._oldDom;
         }
         ctx._oldDom = executor.getter();
+        currCtx = null;
         return ctx._oldDom;
     };
     return _provide(config?.providers, Comp);
@@ -78,7 +80,7 @@ export function useHooks(cb: () => boolean | void) {
 }
 
 export function _checkAndPush<P>(provider: Provider<P, any>) {
-    if (currCtx._isInSetup) {
+    if (currCtx?._isInSetup) {
         if (currCtx._use != null) {
             throw new Error('"Provider.use()" can only be used before "useHooks" if it\'s in setup function.');
         }
@@ -229,7 +231,7 @@ class _Context<T> {
     // latest Prop values with defaultProps.
     get props(): T {
         if (this._defaultProps != null) {
-            return { ...this._defaultProps, ...this._props };
+            return Object.freeze({ ...this._defaultProps, ...this._props });
         }
         return this._props;
     }
