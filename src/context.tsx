@@ -1,29 +1,36 @@
-import React, { useMemo } from 'react';
+import React, { Context, useMemo } from 'react';
 import { _checkAndPush } from './func';
 import { Provider } from './model';
 
-export function createProvider<T>(init: () => T): Provider<T> {
+export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I> {
     const Context = React.createContext<T>(null);
 
     function _Provider(props) {
-        const value = useMemo(() => init(), []);
+        const { initValue } = props;
+        const value = useMemo(() => setup(initValue), []);
         return <Context.Provider value={value}>{props.children}</Context.Provider>;
-    }
-
-    function _use(): T {
-        // @ts-ignore
-        _checkAndPush(this);
-        return _useValue();
     }
 
     function _useValue(): T {
         return React.useContext(Context);
     }
 
-    return { use: _use, _Provider, _useValue } as Provider<T>;
+    function use(): T {
+        // @ts-ignore
+        _checkAndPush(this);
+        return _useValue();
+    }
+
+    function init(value: I) {
+        return { ...provider, initValue: value } as Provider<T, I>;
+    }
+
+    const provider = { use, init, _Provider, _useValue };
+
+    return { ...provider, initValue: null } as Provider<T, I>;
 }
 
-export function _provide<T>(providers: Provider<any>[], Comp: React.FC<T>): React.FC<T> {
+export function _provide<T>(providers: Provider<any, any>[], Comp: React.FC<T>): React.FC<T> {
     if (providers == null) {
         return React.memo(Comp);
     }
@@ -31,8 +38,8 @@ export function _provide<T>(providers: Provider<any>[], Comp: React.FC<T>): Reac
     return React.memo((props) => {
         let dom = <Comp {...props} />;
         providers.forEach((p) => {
-            const { _Provider } = p as any;
-            dom = <_Provider>{dom}</_Provider>;
+            const { _Provider, initValue } = p as any;
+            dom = <_Provider initValue={initValue}>{dom}</_Provider>;
         });
         return dom;
     });

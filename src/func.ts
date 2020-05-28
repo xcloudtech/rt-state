@@ -15,7 +15,7 @@ export function setDebugComponentName(name: string) {
 //  -- Create some states, or use watch/link functions or create any user defined functions or any normal (non-reactive) variables.
 //  -- return a render function, which can be used for rendering the components many times.
 interface CreateConfig<T> {
-    providers?: Provider<any>[];
+    providers?: Provider<any, any>[];
     defaultProps?: DefaultProps<T>;
 }
 export function create<T extends object>(
@@ -77,7 +77,7 @@ export function useHooks(cb: () => boolean | void) {
     return true;
 }
 
-export function _checkAndPush<P>(provider: Provider<P>) {
+export function _checkAndPush<P>(provider: Provider<P, any>) {
     if (!currCtx._isInSetup) {
         throw new Error('"Provider.use()" can only be used within the setup function of the component.');
     }
@@ -172,7 +172,7 @@ function watchWithOption(
 // tslint:disable-next-line:class-name
 class _Context<T> {
     private cleanup: Set<() => void>;
-    _providers: Provider<any>[];
+    _providers: Provider<any, any>[];
     _use: () => boolean | void;
     _oldDom: any;
     executor: Executor;

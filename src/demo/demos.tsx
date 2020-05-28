@@ -83,14 +83,6 @@ export const ReactiveDemo = create((ctx) => {
 });
 
 //////////////////////////
-const ProviderDemoComp = () => {
-    return (
-        <>
-            <ProviderDemoParentComp />
-            <ProviderDemoParentComp />
-        </>
-    );
-};
 
 const globalX = (() => {
     const x = stateV(100);
@@ -98,8 +90,8 @@ const globalX = (() => {
     return { x, add };
 })();
 
-const ProviderX = createProvider(() => {
-    const x = stateV(200);
+const ProviderX = createProvider((initValue: number) => {
+    const x = stateV(initValue ?? 0);
     const add = () => x.value++;
     return { x, add };
 });
@@ -108,6 +100,18 @@ const ProviderV = createProvider(() => {
     const add = () => x.value++;
     return { x, add };
 });
+
+const ProviderDemoComp = createS(
+    () => {
+        return (
+            <>
+                <ProviderDemoParentComp />
+                <ProviderDemoParentComp />
+            </>
+        );
+    },
+    { providers: [] },
+);
 
 const ProviderDemoParentComp = create(
     (ctx) => {
@@ -131,7 +135,7 @@ const ProviderDemoParentComp = create(
             );
         };
     },
-    { providers: [ProviderX, ProviderV] },
+    { providers: [ProviderX.init(999999), ProviderV] },
 );
 
 const ProviderDemoChildComp = create((ctx) => {

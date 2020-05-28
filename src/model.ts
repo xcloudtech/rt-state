@@ -22,6 +22,7 @@ export interface Watcher {
     unwatch(): void;
 }
 
-export interface Provider<P> {
+export interface Provider<P, I> {
+    init(value: I): Provider<P, I>;
     use(): P;
 }
