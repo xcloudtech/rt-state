@@ -1,6 +1,6 @@
 import { StateV } from './model';
 import { getProxy } from './proxy';
-import { isFn, isObj } from './common';
+import { useMemo } from 'react';
 
 type Key = string | number;
 type Target = object;
@@ -12,20 +12,29 @@ const targetMap = new WeakMap<Target, KeyExecutorSet>();
 
 let currExecutor: Executor = null;
 
+export function useRTStateV<T>(initValue?: T): StateV<T> {
+    return useMemo(() => stateV(initValue), []);
+}
+
 // just to wrap any data within the value field of a state.
 // can be used for any data, especially for number and string, or an array.
 // WARNING: just watch one level: the value field of the state.
-export function stateV<T>(value?: T): StateV<T> {
-    return state({ value });
+export function stateV<T>(initValue?: T): StateV<T> {
+    return state({ value: initValue });
 }
+
+export function useRTState<T extends Target>(initValue: T): T {
+    return useMemo(() => state(initValue), []);
+}
+
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
-export function state<T extends Target>(obj: T): T {
-    if (targetMap.has(obj)) {
+export function state<T extends Target>(initValue: T): T {
+    if (targetMap.has(initValue)) {
         throw new Error('can not call state function twice for the same obj.');
     }
-    targetMap.set(obj, new Map() as KeyExecutorSet);
-    return getProxy(obj, handlers);
+    targetMap.set(initValue, new Map() as KeyExecutorSet);
+    return getProxy(initValue, handlers);
 }
 
 const handlers = {

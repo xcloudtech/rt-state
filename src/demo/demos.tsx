@@ -15,6 +15,8 @@ import {
     StateV,
     batchUpdate,
     createProvider,
+    useRTState,
+    useRTStateV,
 } from '../'; // 'rt-state';
 
 const delay = (ms: number) => {
@@ -53,6 +55,7 @@ export const ReactiveDemo = create((ctx) => {
         return (
             <div>
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
+                <UseRTStateComp />
                 <ProviderDemoComp />
                 <WatchTestComp />
                 <ShowCountParent />
@@ -80,6 +83,37 @@ export const ReactiveDemo = create((ctx) => {
             </div>
         );
     };
+});
+
+const UseRTStateComp = () => {
+    console.log('UseRTStateComp render');
+
+    const data = useRTState({ x: 30 });
+    const dataV = useRTStateV(60);
+
+    function add() {
+        data.x++;
+        dataV.value++;
+    }
+
+    return (
+        <div>
+            <button onClick={add}>add</button>
+            <UseRTStateShowComp data={data} dataV={dataV} />
+        </div>
+    );
+};
+
+const UseRTStateShowComp = createS<{
+    data: { x: number };
+    dataV: { value: number };
+}>((props) => {
+    console.log('UseRTStateShowComp render');
+    return (
+        <span>
+            {props.data.x} {props.dataV.value}
+        </span>
+    );
 });
 
 //////////////////////////
