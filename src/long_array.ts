@@ -1,12 +1,17 @@
 import { StateV } from './model';
 import { stateV } from './core';
+import { useMemo } from 'react';
 
-export function stateLongArray<T>(initValues: T[]): LongArray<T> {
-    return new _LongArray(initValues);
+export function useRTStateArray<T>(initValues?: T[]): StateArray<T> {
+    return useMemo(() => stateArray(initValues), []);
+}
+
+export function stateArray<T>(initValues: T[]): StateArray<T> {
+    return new _StateArray(initValues);
 }
 // user can just use stateV([]) for ordinary array state.
 // this class is an optimized implementation of an array state.
-export interface LongArray<T> {
+export interface StateArray<T> {
     values: T[];
     readonly length: number;
     get(idx: number): T;
@@ -17,16 +22,16 @@ export interface LongArray<T> {
     remove(idx: number, deleteCount?: number);
     splice(start: number, deleteCount: number, ...values: T[]);
 
-    readonly items: LongArrayItem<T>[];
-    getItem(idx: number): LongArrayItem<T>;
-    setItem(idx: number, item: LongArrayItem<T>);
-    filterItems(filter: (item: LongArrayItem<T>, index: number) => boolean): LongArray<T>;
-    mapItems<P>(map: (item: LongArrayItem<T>, index: number) => P): P[];
-    spliceItems(start: number, deleteCount: number, ...items: LongArrayItem<T>[]);
+    readonly items: StateArrayItem<T>[];
+    getItem(idx: number): StateArrayItem<T>;
+    setItem(idx: number, item: StateArrayItem<T>);
+    filterItems(filter: (item: StateArrayItem<T>, index: number) => boolean): StateArray<T>;
+    mapItems<P>(map: (item: StateArrayItem<T>, index: number) => P): P[];
+    spliceItems(start: number, deleteCount: number, ...items: StateArrayItem<T>[]);
 }
 
-class _LongArray<T> {
-    private _state: StateV<LongArrayItem<T>[]>;
+class _StateArray<T> {
+    private _state: StateV<StateArrayItem<T>[]>;
     constructor(initValues: T[]) {
         this._state = stateV();
         this.values = initValues;
@@ -37,7 +42,7 @@ class _LongArray<T> {
     set values(values: T[]) {
         const items = [];
         values?.forEach((v) => {
-            items.push(new _LongArrayItem(v));
+            items.push(new _StateArrayItem(v));
         });
         this._state.value = items;
     }
@@ -55,7 +60,7 @@ class _LongArray<T> {
         item.value = value;
     }
     push(value: T) {
-        this._state.value.push(new _LongArrayItem(value));
+        this._state.value.push(new _StateArrayItem(value));
         this.refresh();
     }
     pop(): T {
@@ -70,34 +75,34 @@ class _LongArray<T> {
         this.splice(idx, deleteCount ?? 1);
     }
     splice(start: number, deleteCount: number, ...values: T[]) {
-        const items = values?.map((v) => new _LongArrayItem(v)) ?? [];
+        const items = values?.map((v) => new _StateArrayItem(v)) ?? [];
         this._state.value.splice(start, deleteCount, ...items);
         this.refresh();
     }
 
-    get items(): LongArrayItem<T>[] {
+    get items(): StateArrayItem<T>[] {
         return this._state.value;
     }
-    getItem(idx: number): LongArrayItem<T> {
+    getItem(idx: number): StateArrayItem<T> {
         return this._state.value[idx];
     }
-    setItem(idx: number, item: LongArrayItem<T>) {
+    setItem(idx: number, item: StateArrayItem<T>) {
         this.set(idx, item.value);
     }
-    filterItems(filter: (item: LongArrayItem<T>, index: number) => boolean): LongArray<T> {
+    filterItems(filter: (item: StateArrayItem<T>, index: number) => boolean): StateArray<T> {
         const value = this._state.value;
         const newValue = value.filter(filter);
         if (newValue.length !== value.length) {
-            const newArr = new _LongArray([]);
+            const newArr = new _StateArray([]);
             newArr._state.value = newValue;
             return newArr;
         }
         return this;
     }
-    mapItems<P>(map: (item: LongArrayItem<T>, index: number) => P): P[] {
+    mapItems<P>(map: (item: StateArrayItem<T>, index: number) => P): P[] {
         return this._state.value.map(map);
     }
-    spliceItems(start: number, deleteCount: number, ...items: LongArrayItem<T>[]) {
+    spliceItems(start: number, deleteCount: number, ...items: StateArrayItem<T>[]) {
         this._state.value.splice(start, deleteCount, ...items);
         this.refresh();
     }
@@ -107,18 +112,18 @@ class _LongArray<T> {
     }
 }
 
-export interface LongArrayItem<T> {
+export interface StateArrayItem<T> {
     value: T;
     readonly key: number;
 }
 
-class _LongArrayItem<T> {
+class _StateArrayItem<T> {
     static LongArrayItemKeySeq = 1;
     private _state: StateV<T>;
     private readonly _key: number;
 
     constructor(initValue: T) {
-        this._key = _LongArrayItem.LongArrayItemKeySeq++;
+        this._key = _StateArrayItem.LongArrayItemKeySeq++;
         this._state = stateV(initValue) as any;
     }
     get value(): T {

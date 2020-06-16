@@ -2,14 +2,15 @@ import { create, createS, useHooks, watch, link, setDebugComponentName } from '.
 import { createProvider } from './context';
 import { state, useRTState, stateV, useRTStateV, batchUpdate } from './core';
 import { StateV, Context, Watcher, WatchOptions } from './model';
-import { stateLongArray, LongArray, LongArrayItem } from './long_array';
+import { stateArray, useRTStateArray, StateArray, StateArrayItem } from './long_array';
 
 export {
     state,
     useRTState,
     stateV,
     useRTStateV,
-    stateLongArray,
+    stateArray,
+    useRTStateArray,
     create,
     createS,
     createProvider,
@@ -18,5 +19,5 @@ export {
     link,
     batchUpdate,
 };
-export type { WatchOptions, Watcher, StateV, Context, LongArray, LongArrayItem };
+export type { WatchOptions, Watcher, StateV, Context, StateArray, StateArrayItem };
 export { setDebugComponentName };

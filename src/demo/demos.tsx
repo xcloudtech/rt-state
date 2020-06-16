@@ -6,12 +6,12 @@ import {
     stateV,
     link,
     watch,
-    stateLongArray,
-    LongArrayItem,
+    stateArray,
+    StateArrayItem,
     setDebugComponentName,
     createS,
     useHooks,
-    LongArray,
+    StateArray,
     StateV,
     batchUpdate,
     createProvider,
@@ -666,21 +666,21 @@ const LongArrayComp = create((ctx) => {
     console.log(`${ctx.debugName} setup`);
 
     let gKey = 100;
-    const arr = stateLongArray<number>([]);
+    const arr = stateArray<number>([]);
 
     // Optimized
-    let filteredArr: LongArray<number>;
+    let filteredArr: StateArray<number>;
     const watcher = watch(
         (values) => {
             filteredArr = arr.filterItems((item) => item.value !== 102);
             ctx.forceUpdate();
         },
-        () => [arr.length],
+        () => [arr.items],
     );
 
     console.log('watcher debug name:', watcher.debugName);
 
-    const LongArrayItemComp = create<{ item: LongArrayItem<number> }>((childCtx) => {
+    const LongArrayItemComp = create<{ item: StateArrayItem<number> }>((childCtx) => {
         setDebugComponentName('LongArrayItemComp');
         const itemValue = childCtx.props.item.value;
         console.log(`${childCtx.debugName} ${itemValue} setup`);
