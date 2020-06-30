@@ -1,3 +1,3 @@
-import * as RS from './export';
+import * as rst from './export';
 export * from './export';
-export { RS };
+export { rst };

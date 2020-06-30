@@ -18,14 +18,14 @@ import {
     useRTState,
     useRTStateV,
     view,
-    RS,
+    rst,
 } from '../'; // 'rt-state';
 
 const delay = (ms: number) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-const gState = RS.state({ count: 0, num: { v1: 0, v2: 100 } });
+const gState = rst.state({ count: 0, num: { v1: 0, v2: 100 } });
 
 const gWatcher = watch(
     (values, oldValues) => {
@@ -90,7 +90,7 @@ export const ReactiveDemo = create((ctx) => {
 const UseRTStateComp = () => {
     console.log('UseRTStateComp render');
 
-    const data = RS.useRTState({ x: 30 });
+    const data = rst.useRTState({ x: 30 });
     const dataV = useRTStateV(60);
 
     function add() {
@@ -102,7 +102,7 @@ const UseRTStateComp = () => {
         <div>
             <button onClick={add}>add</button>
             <div>no reactive: {data.x}</div>
-            {RS.view(() => {
+            {rst.view(() => {
                 console.log(`view is reactive: ${data.x}`);
                 return <div>reactive: {data.x}</div>;
             })}
