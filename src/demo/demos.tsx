@@ -15,8 +15,8 @@ import {
     StateV,
     batchUpdate,
     createProvider,
-    useRTState,
-    useRTStateV,
+    useRState,
+    useRStateV,
     view,
     rst,
 } from '../'; // 'rt-state';
@@ -90,8 +90,13 @@ export const ReactiveDemo = create((ctx) => {
 const UseRTStateComp = () => {
     console.log('UseRTStateComp render');
 
-    const data = rst.useRTState({ x: 30 });
-    const dataV = useRTStateV(60);
+    const data = rst.useRState({ x: 30 });
+    const dataV = useRStateV(60);
+
+    const reactiveNode = rst.view(() => {
+        console.log(`view is reactive: ${data.x}`);
+        return <div>reactive: {data.x}</div>;
+    });
 
     function add() {
         data.x++;
@@ -102,10 +107,7 @@ const UseRTStateComp = () => {
         <div>
             <button onClick={add}>add</button>
             <div>no reactive: {data.x}</div>
-            {rst.view(() => {
-                console.log(`view is reactive: ${data.x}`);
-                return <div>reactive: {data.x}</div>;
-            })}
+            {reactiveNode}
             <UseRTStateShowComp data={data} dataV={dataV} />
         </div>
     );

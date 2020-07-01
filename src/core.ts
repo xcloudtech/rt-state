@@ -12,7 +12,7 @@ const targetMap = new WeakMap<Target, KeyExecutorSet>();
 
 let currExecutor: Executor = null;
 
-export function useRTStateV<T>(initValue?: T): StateV<T> {
+export function useRStateV<T>(initValue?: T): StateV<T> {
     return useMemo(() => stateV(initValue), []);
 }
 
@@ -23,7 +23,7 @@ export function stateV<T>(initValue?: T): StateV<T> {
     return state({ value: initValue });
 }
 
-export function useRTState<T extends Target>(initValue: T): T {
+export function useRState<T extends Target>(initValue: T): T {
     return useMemo(() => state(initValue), []);
 }
 

@@ -2,7 +2,7 @@ import { StateV } from './model';
 import { stateV } from './core';
 import { useMemo } from 'react';
 
-export function useRTStateArray<T>(initValues?: T[]): StateArray<T> {
+export function useRStateArray<T>(initValues?: T[]): StateArray<T> {
     return useMemo(() => stateArray(initValues), []);
 }
 
