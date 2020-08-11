@@ -27,17 +27,12 @@ export function useRStateS<T>(initValue?: T): T {
     return useMemo(() => stateS(initValue), []);
 }
 
-const STATE_S_KEY = '__STATE_S_KEY__';
-
 function checkStateSParam<T>(value?: T) {
     if (value == null) {
         return;
     }
     if (typeof value === 'number' || typeof value === 'string') {
         throw new Error(`value cannot be number or string, please use stateV.`);
-    }
-    if (value[STATE_S_KEY] !== undefined) {
-        throw new Error(`value cannot have key ${STATE_S_KEY}.`);
     }
 }
 
@@ -47,30 +42,41 @@ export function stateS<T>(initValue?: T): T {
     return getProxy(stateValue, valueHandlers);
 }
 
+let isInSetStateS = false;
 export function setStateS<T>(stateS: T, newValue: T) {
     checkStateSParam(newValue);
-    stateS[STATE_S_KEY] = newValue;
+    if (isInSetStateS) {
+        throw new Error('isInSetStateS should be false');
+    }
+    isInSetStateS = true;
+    stateS['any'] = newValue;
 }
+
+const OWN_KEYS_ERR_MSG = `do not use any iterator for this object, including spread operator, JSON.stringify, or render it directly, because it's a Proxy.`;
 
 const valueHandlers = {
     get(target: StateV<any>, key: Key) {
-        const realTarget = target.value;
-        if (key === STATE_S_KEY) {
-            return realTarget;
+        if (isInSetStateS) {
+            throw new Error('unreached code');
         }
+        const realTarget = target.value;
         if (realTarget == null) {
             return undefined;
         }
         return realTarget[key];
     },
     set(target: StateV<any>, key: Key, value: any) {
-        if (key === STATE_S_KEY) {
+        if (isInSetStateS) {
+            isInSetStateS = false;
             target.value = value;
             return true;
         }
         const realTarget = target.value;
         realTarget[key] = value;
         return true;
+    },
+    ownKeys(target) {
+        throw new Error(OWN_KEYS_ERR_MSG);
     },
 };
 
@@ -105,6 +111,9 @@ const handlers = {
         const result = Reflect.set(target, key, value);
         trigger(target, key);
         return result;
+    },
+    ownKeys(target) {
+        throw new Error(OWN_KEYS_ERR_MSG);
     },
 };
 

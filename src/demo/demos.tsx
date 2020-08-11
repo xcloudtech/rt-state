@@ -158,7 +158,7 @@ const UseRStateComp = createS(() => {
     return (
         <div>
             <button onClick={add}>add</button>
-            <div>no reactive: {data.x}</div>
+            {/*<div>no reactive: {(data)}</div>*/}
             {reactiveNode}
             <UseRTStateShowComp data={data} dataV={dataV} />
         </div>
