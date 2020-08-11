@@ -23,6 +23,57 @@ export function stateV<T>(initValue?: T): StateV<T> {
     return state({ value: initValue });
 }
 
+export function useRStateS<T>(initValue?: T): T {
+    return useMemo(() => stateS(initValue), []);
+}
+
+const STATE_S_KEY = '__STATE_S_KEY__';
+
+function checkStateSParam<T>(value?: T) {
+    if (value == null) {
+        return;
+    }
+    if (typeof value === 'number' || typeof value === 'string') {
+        throw new Error(`value cannot be number or string, please use stateV.`);
+    }
+    if (value[STATE_S_KEY] !== undefined) {
+        throw new Error(`value cannot have key ${STATE_S_KEY}.`);
+    }
+}
+
+export function stateS<T>(initValue?: T): T {
+    checkStateSParam(initValue);
+    const stateValue = stateV(initValue);
+    return getProxy(stateValue, valueHandlers);
+}
+
+export function setStateS<T>(stateS: T, newValue: T) {
+    checkStateSParam(newValue);
+    stateS[STATE_S_KEY] = newValue;
+}
+
+const valueHandlers = {
+    get(target: StateV<any>, key: Key) {
+        const realTarget = target.value;
+        if (key === STATE_S_KEY) {
+            return realTarget;
+        }
+        if (realTarget == null) {
+            return undefined;
+        }
+        return realTarget[key];
+    },
+    set(target: StateV<any>, key: Key, value: any) {
+        if (key === STATE_S_KEY) {
+            target.value = value;
+            return true;
+        }
+        const realTarget = target.value;
+        realTarget[key] = value;
+        return true;
+    },
+};
+
 export function useRState<T extends Target>(initValue: T): T {
     return useMemo(() => state(initValue), []);
 }
@@ -30,6 +81,9 @@ export function useRState<T extends Target>(initValue: T): T {
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
 export function state<T extends Target>(initValue: T): T {
+    if (initValue != null && (typeof initValue === 'number' || typeof initValue === 'string')) {
+        throw new Error(`initValue cannot be number or string, please use stateV.`);
+    }
     if (targetMap.has(initValue)) {
         throw new Error('can not call state function twice for the same obj.');
     }

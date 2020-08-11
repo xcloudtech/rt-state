@@ -19,6 +19,8 @@ import {
     useRStateV,
     view,
     rst,
+    stateS,
+    useRStateS,
 } from '../'; // 'rt-state';
 
 const delay = (ms: number) => {
@@ -57,7 +59,9 @@ export const ReactiveDemo = create((ctx) => {
         return (
             <div>
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
-                <UseRTStateComp />
+                <StateSComp />
+                <UseRStateSComp />
+                <UseRStateComp />
                 <ProviderDemoComp />
                 <WatchTestComp />
                 <ShowCountParent />
@@ -87,8 +91,56 @@ export const ReactiveDemo = create((ctx) => {
     };
 });
 
-const UseRTStateComp = () => {
-    console.log('UseRTStateComp render');
+const StateSComp = create((ctx) => {
+    setDebugComponentName('StateSComp');
+    console.log(`${ctx.debugName} setup`);
+
+    const data = stateS({ v1: 11, v2: 22 });
+    const addAndUpdate = () => {
+        rst.setStateS(data, { v1: data.v1 + 1, v2: data.v2 + 1 });
+    };
+    const justAdd = () => {
+        data.v1 += 1000;
+        data.v2 += 1000;
+        console.log('no update');
+    };
+
+    return (props) => {
+        console.log(`StateSComp render: ${data.v1} ${data.v2}`);
+        return (
+            <div>
+                v1: {data.v1}&nbsp;v2:{data.v2}
+                <button onClick={addAndUpdate}>addUpdate</button>
+                <button onClick={justAdd}>add</button>
+            </div>
+        );
+    };
+});
+
+const UseRStateSComp = createS(() => {
+    console.log('UseRStateSComp render');
+
+    const data = useRStateS<{ v: number }>(null);
+
+    const reactiveNode = rst.view(() => {
+        console.log(`view is reactive: ${data.v}`);
+        return <div>reactive: {data.v ?? 0}</div>;
+    });
+
+    function add() {
+        rst.setStateS(data, { v: (data.v ?? 0) + 100 });
+    }
+
+    return (
+        <div>
+            <button onClick={add}>add</button>
+            {reactiveNode}
+        </div>
+    );
+});
+
+const UseRStateComp = createS(() => {
+    console.log('UseRStateComp render');
 
     const data = rst.useRState({ x: 30 });
     const dataV = useRStateV(60);
@@ -111,7 +163,7 @@ const UseRTStateComp = () => {
             <UseRTStateShowComp data={data} dataV={dataV} />
         </div>
     );
-};
+});
 
 const UseRTStateShowComp = createS<{
     data: { x: number };

@@ -1,5 +1,6 @@
 import { createS } from './func';
-import React, { ReactNode } from 'react';
+import * as React from 'react';
+import { ReactNode } from 'react';
 
 const _Watcher = createS<{
     render: () => ReactNode;

@@ -1,5 +1,6 @@
-import React, { Context, useMemo } from 'react';
-import { _checkAndPush, _isInSetup } from './func';
+import * as React from 'react';
+import { Context, useMemo } from 'react';
+import { _checkAndPush } from './func';
 import { Provider } from './model';
 
 export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I> {
