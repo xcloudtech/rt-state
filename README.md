@@ -8,7 +8,7 @@
 2. Unify local state and global state management. So, don't need `useContext` or wrap the component with `Provider` any more. (rt-state has its own provider, call `provider.use()` to get data from parent or create global state, and share between different components.)
 3. Fine granularity of controlling when and how to update the view with `watch`/`link` functions.
 4. An optimized `state` function for long Array.
-5. React Hooks API integration. React Hooks API Calls can be wrapped by `useHooks` within the `setup` function. The user is also able to control whether the view should be updated or not, even when setState/* has been called.
+5. React Hooks API integration. React Hooks API Calls can be wrapped by `hooks` within the `setup` function. The user is also able to control whether the view should be updated or not, even when setState/* has been called.
 
 
 ### Reasons
@@ -101,6 +101,14 @@ More examples can be found in `/src/demo`.
 
    So, in this case, if you want to trigger an update, you need change the reference by `{...value}` for object, or `[...value]` for array. 
    
+   Use it in React.FC, call `useRState`.
+   
+- [stateS](https://github.com/duchiporexia/rt-state#createS)
+
+  `stateS` is  a simplified version of state. the change of its field doesn't trigger re-rendering. So, if you want to trigger a re-rendering, call `setStateS`. It will re-render all the dependants, no matter which field it depends on.
+  
+  Use it in React.FC, call `useRStateS`.
+   
 - [stateV](https://github.com/duchiporexia/rt-state#stateV)
 
   `stateV` is just a shorthand of `state({value: anything})`. So, `stateV` returns an object which only contains one field: `value`.
@@ -113,7 +121,9 @@ More examples can be found in `/src/demo`.
   const data = stateV(100);
   data.value = 101; // This will trigger an update of data.value's dependants.
   ```
-
+  
+  Use it in React.FC, call `useRStateV`.
+  
 - [stateLongArray](https://github.com/duchiporexia/rt-state#stateLongArray)
   
   An optimized version for long array. Don't use it unless you could understand why you need it! 
@@ -174,13 +184,12 @@ More examples can be found in `/src/demo`.
 
 #### React Hooks Integration API
 
-- [useHooks](https://github.com/duchiporexia/rt-state#useHooks)
+- [hooks](https://github.com/duchiporexia/rt-state#hooks)
 
   It should only be used when you have to the functionality of another library which depends on React Hooks APIs and there is no way for you to avoid it. So, IMPORTANT, use it as less as possible.
   
   * The callback function will be called again and again before rendering the component.
-  * It could control the re-rendering of the component. If the returned value is false, the component will not be re-rendered.
-  * don't use it in `render` function. Just call `useHooks` in the `setup` closure of `create` function.
+  * don't use it in `render` function. Just call `hooks` in the `setup` closure of `create` function.
 
 ### Other APIs or Interfaces
 

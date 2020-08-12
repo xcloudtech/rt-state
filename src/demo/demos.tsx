@@ -235,7 +235,7 @@ const ProviderDemoChildComp = create((ctx) => {
     console.log(`${ctx.debugName} setup`);
     const providerX = ProviderX.use();
     const providerV = ProviderV.use();
-    // useHooks(() => {
+    // hooks(() => {
     //     console.log('use Hooks');
     //     const ref = useRef(1);
     // });
@@ -382,16 +382,16 @@ const HookComp = create((ctx) => {
         return { num, setNum };
     });
 
-    // // can't use "useHooks" again, just wrap all your use* functions within one "useHooks" callback.
-    // useHooks(() => {
+    // // can't use "hooks" again, just wrap all your use* functions within one "hooks" callback.
+    // hooks(() => {
     //     useState();
     // });
 
     const sCtx = hookCompSetup(hCtx);
 
     return () => {
-        // // can't use "useHooks" in render function.
-        // useHooks(() => {
+        // // can't use "hooks" in render function.
+        // hooks(() => {
         //     useState();
         // });
         console.log(`${ctx.debugName} render`);
@@ -443,8 +443,8 @@ const CreateSimpleComp = createS<{ name: string; val?: number }>(
         //     () => console.log('break!'),
         //     () => [null],
         // );
-        // // can't call useHooks in the render function.
-        // useHooks(() => {
+        // // can't call hooks in the render function.
+        // hooks(() => {
         //     console.log('break');
         // });
         return (

@@ -50,7 +50,7 @@ export function create<T extends object>(
         if (dataFromHooks != null) {
             const hooksData = ctxContainer.currCtx._dataFromHooks;
             if (typeof dataFromHooks !== 'object') {
-                throw new Error('useHooks func should return an object.');
+                throw new Error('hooks func should return an object.');
             }
             Object.keys(dataFromHooks).forEach((k) => {
                 hooksData[k] = dataFromHooks[k];
@@ -74,10 +74,10 @@ export function createS<T extends object>(Comp: React.FC<T>, config?: CreateConf
 export function hooks<T>(cb: () => T): T {
     const currCtx = ctxContainer.currCtx;
     if (!currCtx._isInSetup) {
-        throw new Error('"useHooks" can only be used within the setup function of the component.');
+        throw new Error('"hooks" can only be used within the setup function of the component.');
     }
     if (currCtx._use != null) {
-        throw new Error('"useHooks" can only be used once within the component.');
+        throw new Error('"hooks" can only be used once within the component.');
     }
     currCtx._use = cb;
     currCtx._dataFromHooks = cb() ?? {};
@@ -88,7 +88,7 @@ export function _checkAndPush<P>(provider: Provider<P, any>) {
     const currCtx = ctxContainer.currCtx;
     if (currCtx?._isInSetup) {
         if (currCtx._use != null) {
-            throw new Error('"Provider.use()" can only be used before "useHooks" if it\'s in setup function.');
+            throw new Error('"Provider.use()" can only be used before "hooks" if it\'s in setup function.');
         }
         currCtx._providers = currCtx._providers ?? [];
         currCtx._providers.push(provider);
