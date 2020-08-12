@@ -21,6 +21,7 @@ import {
     rst,
     stateS,
     useRStateS,
+    PropsWrapper,
 } from '../'; // 'rt-state';
 
 const delay = (ms: number) => {
@@ -59,9 +60,10 @@ export const ReactiveDemo = create((ctx) => {
         return (
             <div>
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
-                <StateSComp />
                 <UseRStateSComp />
                 <UseRStateComp />
+                <UseSetupComp />
+                <StateSComp />
                 <ProviderDemoComp />
                 <WatchTestComp />
                 <ShowCountParent />
@@ -117,18 +119,91 @@ const StateSComp = create((ctx) => {
     };
 });
 
-const UseRStateSComp = createS(() => {
-    console.log('UseRStateSComp render');
+const ProviderForSetup = createProvider((initValue: number) => {
+    const x = stateV(initValue ?? 0);
+    const add = () => x.value++;
+    return { x, add };
+});
 
-    const data = useRStateS<{ v: number }>(null);
+function rStateSCompSetupFunc(rProps: PropsWrapper<{ data: string }>) {
+    console.log('rProps:', rProps.props);
+    const data = stateS<{ v: number }>(null);
+    const providerForSetup = ProviderForSetup.use();
 
     const reactiveNode = rst.view(() => {
         console.log(`view is reactive: ${data.v}`);
-        return <div>reactive: {data.v ?? 0}</div>;
+        return (
+            <div>
+                {rProps.props.data} reactive: {data.v ?? 0}
+            </div>
+        );
     });
 
     function add() {
         rst.setStateS(data, { v: (data.v ?? 0) + 100 });
+    }
+    return {
+        reactiveNode,
+        add,
+        providerForSetup,
+    };
+}
+
+const UseSetupComp = createS(
+    (props) => {
+        console.log('useSetupComp render');
+        return (
+            <>
+                <UseSetupCompInner data={'my name is UseSetupCompInner'} />
+                {/*<UseSetupCompInner2 data={'my name is UseSetupCompInner2'} />*/}
+            </>
+        );
+    },
+    { providers: [ProviderForSetup] },
+);
+
+const commonFuncForUseSetup = (props: { data: string }) => {
+    const ctxt = rst.useSetup(props, rStateSCompSetupFunc);
+    return (
+        <div>
+            <button onClick={ctxt.add}>add</button>
+            {ctxt.reactiveNode}
+            <button onClick={ctxt.providerForSetup.add}>add provider</button>
+            <br />
+            {rst.view(() => (
+                <span>{ctxt.providerForSetup.x.value}</span>
+            ))}
+            <br />
+            {props.data}: {ctxt.providerForSetup.x.value}
+        </div>
+    );
+};
+
+// don't need createS, awesome! but provider is not reactive, needs to be wrapped with rst.reactive.
+const UseSetupCompInner: React.FC<{ data: string }> = (props) => {
+    console.log('UseSetupCompInner render');
+    return commonFuncForUseSetup(props);
+};
+
+// provider is reactive.
+const UseSetupCompInner2 = createS<{ data: string }>((props) => {
+    console.log('UseSetupCompInner2 render');
+    return commonFuncForUseSetup(props);
+});
+
+const UseRStateSComp = createS(() => {
+    console.log('UseRStateSComp render');
+
+    const data = rst.useRStateS({ x: 30 });
+
+    const reactiveNode = rst.view(() => {
+        console.log(`UseRStateSComp view is reactive: ${data.x}`);
+        return <div>UseRStateSComp reactive: {data.x}</div>;
+    });
+
+    function add() {
+        data.x++;
+        rst.setStateS(data, { x: data.x + 100 });
     }
 
     return (
@@ -146,8 +221,8 @@ const UseRStateComp = createS(() => {
     const dataV = useRStateV(60);
 
     const reactiveNode = rst.view(() => {
-        console.log(`view is reactive: ${data.x}`);
-        return <div>reactive: {data.x}</div>;
+        console.log(`UseRStateComp view is reactive: ${data.x}`);
+        return <div>UseRStateComp reactive: {data.x}</div>;
     });
 
     function add() {

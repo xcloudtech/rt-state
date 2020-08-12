@@ -1,9 +1,8 @@
 import { StateV } from './model';
 import { getProxy } from './proxy';
-import { useMemo } from 'react';
+import { Target } from './common';
 
 type Key = string | number;
-type Target = object;
 
 type ExecutorSet = Set<Executor>;
 type KeyExecutorSet = Map<Key, ExecutorSet>;
@@ -12,19 +11,11 @@ const targetMap = new WeakMap<Target, KeyExecutorSet>();
 
 let currExecutor: Executor = null;
 
-export function useRStateV<T>(initValue?: T): StateV<T> {
-    return useMemo(() => stateV(initValue), []);
-}
-
 // just to wrap any data within the value field of a state.
 // can be used for any data, especially for number and string, or an array.
 // WARNING: just watch one level: the value field of the state.
 export function stateV<T>(initValue?: T): StateV<T> {
     return state({ value: initValue });
-}
-
-export function useRStateS<T>(initValue?: T): T {
-    return useMemo(() => stateS(initValue), []);
 }
 
 function checkStateSParam<T>(value?: T) {
@@ -52,7 +43,7 @@ export function setStateS<T>(stateS: T, newValue: T) {
     stateS['any'] = newValue;
 }
 
-const OWN_KEYS_ERR_MSG = `do not use any iterator for this object, including spread operator, JSON.stringify, or render it directly, because it's a Proxy.`;
+const OWN_KEYS_ERR_MSG = `Do not use any key iterator for this object, including spread operator, JSON.stringify, or render it directly, because it's a state, which is a data Proxy.`;
 
 const valueHandlers = {
     get(target: StateV<any>, key: Key) {
@@ -79,10 +70,6 @@ const valueHandlers = {
         throw new Error(OWN_KEYS_ERR_MSG);
     },
 };
-
-export function useRState<T extends Target>(initValue: T): T {
-    return useMemo(() => state(initValue), []);
-}
 
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
@@ -166,7 +153,6 @@ export function batchUpdate(cb: () => void) {
 
 export class Executor {
     // Just for debugging.
-    static DebugNamePrefix = 'watcher_';
     static GlobalId = 0;
     readonly debugName: string;
     //////////////////////////////
@@ -176,8 +162,8 @@ export class Executor {
     private readonly _update: () => void;
     deps?: Set<ExecutorSet>;
 
-    constructor(getter: () => any, update: () => void) {
-        this.debugName = `${Executor.DebugNamePrefix}${Executor.GlobalId++}`;
+    constructor(getter: () => any, update: () => void, type: string) {
+        this.debugName = `${type}_${Executor.GlobalId++}`;
 
         this.active = true;
         this._getter = getter;

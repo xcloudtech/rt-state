@@ -1,11 +1,13 @@
 import { create, createS, useHooks, watch, link, setDebugComponentName } from './func';
-import { createProvider } from './context';
-import { state, useRState, stateV, useRStateV, stateS, useRStateS, setStateS, batchUpdate } from './core';
-import { StateV, Context, Watcher, WatchOptions } from './model';
+import { createProvider } from './provider';
+import { state, stateV, stateS, setStateS, batchUpdate } from './core';
+import { StateV, PropsWrapper, Context, Watcher, WatchOptions } from './model';
 import { stateArray, useRStateArray, StateArray, StateArrayItem } from './long_array';
 import { view } from './state_watcher';
+import { useSetup, useRState, useRStateV, useRStateS } from './useFunc';
 
 export {
+    useSetup,
     state,
     useRState,
     stateV,
@@ -24,5 +26,5 @@ export {
     batchUpdate,
     view,
 };
-export type { WatchOptions, Watcher, StateV, Context, StateArray, StateArrayItem };
+export type { WatchOptions, Watcher, StateV, PropsWrapper, Context, StateArray, StateArrayItem };
 export { setDebugComponentName };

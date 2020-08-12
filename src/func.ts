@@ -1,14 +1,13 @@
 import * as React from 'react';
-import { track, trigger, stateV, Executor } from './core';
+import { track, trigger, Executor } from './core';
 import { Context, Provider, StateV, Watcher, WatchOptions } from './model';
 import { DefaultProps, DepsReturnType, notEqual } from './common';
-import { _provide } from './context';
-
-let currCtx: _Context<any>;
+import { _Context, ctxContainer } from './context';
+import { _provide } from './provider';
 
 // for debug only.
 export function setDebugComponentName(name: string) {
-    currCtx._compDebugName = `${name}_${Executor.GlobalId++}`;
+    ctxContainer.currCtx._compDebugName = `${name}_${Executor.GlobalId++}`;
 }
 // setup:
 //  -- only be called once at the beginning of the whole lifecycle of the component.
@@ -26,7 +25,7 @@ export function create<T extends object>(
         const update = React.useReducer((s) => s + 1, 0)[1];
         const ctxRef = React.useRef<_Context<T>>(new _Context(props, update));
         const ctx = ctxRef.current;
-        currCtx = ctx;
+        ctxContainer.currCtx = ctx;
         React.useEffect(() => {
             return () => {
                 ctx.dispose();
@@ -43,7 +42,7 @@ export function create<T extends object>(
                 ctx._defaultProps = Object.freeze(config?.defaultProps);
             }
             const render = setup(ctx);
-            executor = new Executor(() => render(ctx.props), update);
+            executor = new Executor(() => render(ctx.props), update, 'comp');
             ctx.addDisposeCallBack(() => executor.unwatch());
             ctx.executor = executor;
         }
@@ -52,11 +51,11 @@ export function create<T extends object>(
             ctx._isInSetup = false;
         }
         if (!needUpdate && ctx._oldDom) {
-            currCtx = null;
+            ctxContainer.currCtx = null;
             return ctx._oldDom;
         }
         ctx._oldDom = executor.getter();
-        currCtx = null;
+        ctxContainer.currCtx = null;
         return ctx._oldDom;
     };
     return _provide(config?.providers, Comp);
@@ -67,6 +66,7 @@ export function createS<T extends object>(Comp: React.FC<T>, config?: CreateConf
 }
 
 export function useHooks(cb: () => boolean | void) {
+    const currCtx = ctxContainer.currCtx;
     if (!currCtx._isInSetup) {
         throw new Error('"useHooks" can only be used within the setup function of the component.');
     }
@@ -80,17 +80,23 @@ export function useHooks(cb: () => boolean | void) {
 }
 
 export function _checkAndPush<P>(provider: Provider<P, any>) {
+    const currCtx = ctxContainer.currCtx;
+    const useSetupCtx = ctxContainer.useSetupCtx;
     if (currCtx?._isInSetup) {
         if (currCtx._use != null) {
             throw new Error('"Provider.use()" can only be used before "useHooks" if it\'s in setup function.');
         }
+        if (useSetupCtx.isIn) {
+            throw new Error('can not use "useSetup" in setup func of create');
+        }
         currCtx._providers = currCtx._providers ?? [];
         currCtx._providers.push(provider);
+        return;
     }
-}
-
-export function _isInSetup() {
-    return currCtx._isInSetup;
+    if (useSetupCtx.isIn) {
+        useSetupCtx.providers = useSetupCtx.providers ?? [];
+        useSetupCtx.providers.push(provider);
+    }
 }
 
 export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateV<T> {
@@ -154,10 +160,11 @@ function watchWithOption(
     };
     const getter = deps ?? (() => null);
 
-    const executor = new Executor(getter, update);
+    const executor = new Executor(getter, update, 'watcher');
 
     // If it is not a global watcher.
     if (!isGlobal) {
+        const currCtx = ctxContainer.currCtx;
         if (!currCtx || !currCtx._isInSetup) {
             throw new Error(
                 '"watch" can only be called within the setup function of the current component, or use it out of the component and set it to be global.',
@@ -171,87 +178,4 @@ function watchWithOption(
     oldValues = values;
 
     return executor;
-}
-
-// Context can be used in any functions within the setup function.
-// tslint:disable-next-line:class-name
-class _Context<T> {
-    private cleanup: Set<() => void>;
-    _providers: Provider<any, any>[];
-    _use: () => boolean | void;
-    _oldDom: any;
-    executor: Executor;
-    _compDebugName: string;
-    _props: T;
-    _watchProps: StateV<T>;
-    _defaultProps: DefaultProps<T>;
-    _updateView: () => void;
-    _isInSetup: boolean;
-
-    constructor(props: T, update: () => void) {
-        this.cleanup = new Set<() => void>();
-        this._props = props;
-        this._watchProps = stateV<T>(props);
-        this._updateView = update;
-        this._isInSetup = false;
-    }
-    /////////////////////////
-    addDisposeCallBack(cb: () => void) {
-        if (!this.cleanup.has(cb)) {
-            this.cleanup.add(cb);
-        }
-    }
-    dispose() {
-        this.cleanup.forEach((c) => c());
-    }
-    updateProps(props: T) {
-        if (props !== this._props) {
-            this._props = props;
-            this._watchProps.value = props;
-        }
-    }
-    use() {
-        if (this._isInSetup) {
-            return true;
-        }
-        currCtx._providers?.forEach((p) => {
-            p.use();
-        });
-        return this._use?.() ?? true;
-    }
-    /////////////////////////
-    // Just for debugging.
-    get debugName(): string {
-        return this._compDebugName;
-    }
-    // if the component is unmounted, its active is false.
-    get active(): boolean {
-        return this.executor.active ?? false;
-    }
-    // latest Prop values with defaultProps.
-    get props(): T {
-        if (this._defaultProps != null) {
-            return Object.freeze({ ...this._defaultProps, ...this._props });
-        }
-        return this._props;
-    }
-    // can be used to watch any changes of any prop in `watch` function.
-    // like: ctx.w().prop1
-    w(): T {
-        return this._watchProps.value;
-    }
-    // will be called when the component is about to be unmounted.
-    onDispose(cb: () => void) {
-        this.addDisposeCallBack(cb);
-        if (!this._isInSetup) {
-            throw new Error('"onDispose" can only be called within the setup function of the current component.');
-        }
-    }
-
-    forceUpdate() {
-        // Avoid rendering twice for the first time.
-        if (this.executor) {
-            this._updateView();
-        }
-    }
 }
