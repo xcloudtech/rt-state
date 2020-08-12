@@ -21,7 +21,6 @@ import {
     rst,
     stateS,
     useRStateS,
-    PropsWrapper,
 } from '../'; // 'rt-state';
 
 const delay = (ms: number) => {
@@ -125,8 +124,8 @@ const ProviderForSetup = createProvider((initValue: number) => {
     return { x, add };
 });
 
-function rStateSCompSetupFunc(rProps: PropsWrapper<{ data: string }>) {
-    console.log('rProps:', rProps.props);
+function rStateSCompSetupFunc(wrapper: { data: string }) {
+    console.log('data Wrapper:', wrapper);
     const data = stateS<{ v: number }>(null);
     const providerForSetup = ProviderForSetup.use();
 
@@ -134,7 +133,7 @@ function rStateSCompSetupFunc(rProps: PropsWrapper<{ data: string }>) {
         console.log(`view is reactive: ${data.v}`);
         return (
             <div>
-                {rProps.props.data} reactive: {data.v ?? 0}
+                {wrapper.data} reactive: {data.v ?? 0}
             </div>
         );
     });

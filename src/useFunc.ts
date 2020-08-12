@@ -1,17 +1,21 @@
-import { PropsWrapper, StateV } from './model';
+import { StateV } from './model';
 import { useMemo, useRef } from 'react';
 import { state, stateS, stateV } from './core';
 import { Target } from './common';
 import { ctxContainer } from './context';
 
-export function useSetup<P, T>(props: P, setup: (rProps: PropsWrapper<P>) => T): T {
-    const setupRef = useRef({ props, hasSetup: false, ret: undefined });
-    setupRef.current.props = props;
+export function useSetup<D extends object, T>(data: D, setup: (data: D) => T): T {
+    const setupRef = useRef({ data: {} as any, hasSetup: false, ret: undefined });
+    if (data != null) {
+        Object.keys(data).forEach((k) => {
+            setupRef.current.data[k] = data[k];
+        });
+    }
     const useSetupCtx = ctxContainer.useSetupCtx;
     if (!setupRef.current.hasSetup) {
         setupRef.current.hasSetup = true;
         useSetupCtx.isIn = true;
-        setupRef.current.ret = setup(setupRef.current);
+        setupRef.current.ret = setup(setupRef.current.data);
         useSetupCtx.isIn = false;
     } else {
         const providers = useSetupCtx.providers;
