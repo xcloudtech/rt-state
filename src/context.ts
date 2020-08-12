@@ -6,8 +6,8 @@ import { DefaultProps } from './common';
 export class _Context<T> {
     private cleanup: Set<() => void>;
     _providers: Provider<any, any>[];
-    _use: () => boolean | void;
-    _oldDom: any;
+    _use: () => any;
+    _dataFromHooks: any;
     executor: Executor;
     _compDebugName: string;
     _props: T;
@@ -40,12 +40,12 @@ export class _Context<T> {
     }
     use() {
         if (this._isInSetup) {
-            return true;
+            return null;
         }
         ctxContainer.currCtx._providers?.forEach((p) => {
             p.use();
         });
-        return this._use?.() ?? true;
+        return this._use?.();
     }
     /////////////////////////
     // Just for debugging.

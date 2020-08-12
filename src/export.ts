@@ -1,4 +1,4 @@
-import { create, createS, useHooks, watch, link, setDebugComponentName } from './func';
+import { create, createS, hooks, watch, link, setDebugComponentName } from './func';
 import { createProvider } from './provider';
 import { state, stateV, stateS, setStateS, batchUpdate } from './core';
 import { StateV, Context, Watcher, WatchOptions } from './model';
@@ -19,7 +19,7 @@ export {
     create,
     createS,
     createProvider,
-    useHooks,
+    hooks,
     watch,
     link,
     batchUpdate,

@@ -46,17 +46,23 @@ export function create<T extends object>(
             ctx.addDisposeCallBack(() => executor.unwatch());
             ctx.executor = executor;
         }
-        const needUpdate = ctx.use();
+        const dataFromHooks = ctx.use();
+        if (dataFromHooks != null) {
+            const hooksData = ctxContainer.currCtx._dataFromHooks;
+            if (typeof dataFromHooks !== 'object') {
+                throw new Error('useHooks func should return an object.');
+            }
+            Object.keys(dataFromHooks).forEach((k) => {
+                hooksData[k] = dataFromHooks[k];
+            });
+        }
+
         if (ctx._isInSetup) {
             ctx._isInSetup = false;
         }
-        if (!needUpdate && ctx._oldDom) {
-            ctxContainer.currCtx = null;
-            return ctx._oldDom;
-        }
-        ctx._oldDom = executor.getter();
+        const dom = executor.getter();
         ctxContainer.currCtx = null;
-        return ctx._oldDom;
+        return dom;
     };
     return _provide(config?.providers, Comp);
 }
@@ -65,7 +71,7 @@ export function createS<T extends object>(Comp: React.FC<T>, config?: CreateConf
     return create<T>((ctx) => Comp, config);
 }
 
-export function useHooks(cb: () => boolean | void) {
+export function hooks<T>(cb: () => T): T {
     const currCtx = ctxContainer.currCtx;
     if (!currCtx._isInSetup) {
         throw new Error('"useHooks" can only be used within the setup function of the component.');
@@ -74,9 +80,8 @@ export function useHooks(cb: () => boolean | void) {
         throw new Error('"useHooks" can only be used once within the component.');
     }
     currCtx._use = cb;
-    cb();
-    // need update.
-    return true;
+    currCtx._dataFromHooks = cb() ?? {};
+    return currCtx._dataFromHooks;
 }
 
 export function _checkAndPush<P>(provider: Provider<P, any>) {

@@ -10,7 +10,7 @@ import {
     StateArrayItem,
     setDebugComponentName,
     createS,
-    useHooks,
+    hooks,
     StateArray,
     StateV,
     batchUpdate,
@@ -81,7 +81,7 @@ export const ReactiveDemo = create((ctx) => {
                 <ShowNum data={gState} />
                 <DefaultPropsComp v1={2} />
                 <TestBatchUpdateComp />
-                <UseHookComp />
+                <HookComp />
                 <ForceUpdateComp stateFromParent={dataForForceUpdateComp} />
                 <ArrComp />
                 <LongArrayComp />
@@ -354,12 +354,20 @@ const ForceUpdateComp = create<{ stateFromParent: { parentNum: number } }>((ctx)
     };
 });
 
-const UseHookComp = create((ctx) => {
-    setDebugComponentName('UseHookComp');
-    console.log(`${ctx.debugName} setup`);
+const hookCompSetup = (hCtx: any) => {
+    const addOne = () => {
+        hCtx.setNum(hCtx.num + 1);
+    };
+    const add100 = () => {
+        hCtx.setNum(hCtx.num + 100);
+    };
+    return { hCtx, addOne, add100 };
+};
 
-    let num, setNum;
-    useHooks(() => {
+const HookComp = create((ctx) => {
+    setDebugComponentName('HookComp');
+    console.log(`${ctx.debugName} setup`);
+    const hCtx = hooks(() => {
         //// can't use watch here!
         // watch(
         //     () => {
@@ -369,11 +377,9 @@ const UseHookComp = create((ctx) => {
         // );
 
         // This callback function will be called again and again before rendering the component.
-        console.log('call Hooks');
-        [num, setNum] = useState(666);
-        if (num >= 670 && num <= 675) {
-            return false;
-        }
+        console.log('Call hooks');
+        const [num, setNum] = useState(666);
+        return { num, setNum };
     });
 
     // // can't use "useHooks" again, just wrap all your use* functions within one "useHooks" callback.
@@ -381,9 +387,7 @@ const UseHookComp = create((ctx) => {
     //     useState();
     // });
 
-    const addOne = () => {
-        setNum(num + 1);
-    };
+    const sCtx = hookCompSetup(hCtx);
 
     return () => {
         // // can't use "useHooks" in render function.
@@ -393,10 +397,11 @@ const UseHookComp = create((ctx) => {
         console.log(`${ctx.debugName} render`);
         return (
             <div>
-                UseHookComp <button onClick={addOne}>add</button>&nbsp;
-                <span>
-                    num:{num} {' must not in [670, 675]'}
-                </span>
+                {ctx.debugName}: <br />
+                <button onClick={sCtx.addOne}>add1</button>&nbsp;
+                <button onClick={sCtx.add100}>add100</button>&nbsp;
+                <br />
+                <span>num: {hCtx.num}</span>
             </div>
         );
     };
