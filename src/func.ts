@@ -81,21 +81,13 @@ export function useHooks(cb: () => boolean | void) {
 
 export function _checkAndPush<P>(provider: Provider<P, any>) {
     const currCtx = ctxContainer.currCtx;
-    const useSetupCtx = ctxContainer.useSetupCtx;
     if (currCtx?._isInSetup) {
         if (currCtx._use != null) {
             throw new Error('"Provider.use()" can only be used before "useHooks" if it\'s in setup function.');
         }
-        if (useSetupCtx.isIn) {
-            throw new Error('can not use "useSetup" in setup func of create');
-        }
         currCtx._providers = currCtx._providers ?? [];
         currCtx._providers.push(provider);
         return;
-    }
-    if (useSetupCtx.isIn) {
-        useSetupCtx.providers = useSetupCtx.providers ?? [];
-        useSetupCtx.providers.push(provider);
     }
 }
 

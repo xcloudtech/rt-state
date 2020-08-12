@@ -61,7 +61,6 @@ export const ReactiveDemo = create((ctx) => {
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
                 <UseRStateSComp />
                 <UseRStateComp />
-                <UseSetupComp />
                 <StateSComp />
                 <ProviderDemoComp />
                 <WatchTestComp />
@@ -116,78 +115,6 @@ const StateSComp = create((ctx) => {
             </div>
         );
     };
-});
-
-const ProviderForSetup = createProvider((initValue: number) => {
-    const x = stateV(initValue ?? 0);
-    const add = () => x.value++;
-    return { x, add };
-});
-
-function rStateSCompSetupFunc(wrapper: { data: string }) {
-    console.log('data Wrapper:', wrapper);
-    const data = stateS<{ v: number }>(null);
-    const providerForSetup = ProviderForSetup.use();
-
-    const reactiveNode = rst.view(() => {
-        console.log(`view is reactive: ${data.v}`);
-        return (
-            <div>
-                {wrapper.data} reactive: {data.v ?? 0}
-            </div>
-        );
-    });
-
-    function add() {
-        rst.setStateS(data, { v: (data.v ?? 0) + 100 });
-    }
-    return {
-        reactiveNode,
-        add,
-        providerForSetup,
-    };
-}
-
-const UseSetupComp = createS(
-    (props) => {
-        console.log('useSetupComp render');
-        return (
-            <>
-                <UseSetupCompInner data={'my name is UseSetupCompInner'} />
-                {/*<UseSetupCompInner2 data={'my name is UseSetupCompInner2'} />*/}
-            </>
-        );
-    },
-    { providers: [ProviderForSetup] },
-);
-
-const commonFuncForUseSetup = (props: { data: string }) => {
-    const ctxt = rst.useSetup(props, rStateSCompSetupFunc);
-    return (
-        <div>
-            <button onClick={ctxt.add}>add</button>
-            {ctxt.reactiveNode}
-            <button onClick={ctxt.providerForSetup.add}>add provider</button>
-            <br />
-            {rst.view(() => (
-                <span>{ctxt.providerForSetup.x.value}</span>
-            ))}
-            <br />
-            {props.data}: {ctxt.providerForSetup.x.value}
-        </div>
-    );
-};
-
-// don't need createS, awesome! but provider is not reactive, needs to be wrapped with rst.reactive.
-const UseSetupCompInner: React.FC<{ data: string }> = (props) => {
-    console.log('UseSetupCompInner render');
-    return commonFuncForUseSetup(props);
-};
-
-// provider is reactive.
-const UseSetupCompInner2 = createS<{ data: string }>((props) => {
-    console.log('UseSetupCompInner2 render');
-    return commonFuncForUseSetup(props);
 });
 
 const UseRStateSComp = createS(() => {

@@ -4,10 +4,9 @@ import { state, stateV, stateS, setStateS, batchUpdate } from './core';
 import { StateV, Context, Watcher, WatchOptions } from './model';
 import { stateArray, useRStateArray, StateArray, StateArrayItem } from './long_array';
 import { view } from './state_watcher';
-import { useSetup, useRState, useRStateV, useRStateS } from './useFunc';
+import { useRState, useRStateV, useRStateS } from './useFunc';
 
 export {
-    useSetup,
     state,
     useRState,
     stateV,

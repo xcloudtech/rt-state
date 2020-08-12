@@ -85,8 +85,4 @@ export class _Context<T> {
 }
 export const ctxContainer: {
     currCtx: _Context<any>;
-    useSetupCtx: {
-        isIn: boolean;
-        providers: Provider<any, any>[];
-    };
-} = { currCtx: null, useSetupCtx: { isIn: false, providers: null } };
+} = { currCtx: null };
