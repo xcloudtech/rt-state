@@ -86,6 +86,7 @@ More examples can be found in `/src/demo`.
    ```js
      const data = state({ v: state({ v: state({ v: 666 }) }) });
    ```
+   To use `state`/`stateS`/`stateV` in `React` functional component, please use `useRState`/`useRStateS`/`useRStateV`, and in order to make the `dom` reactive, you should use `rst.view` to wrap the `dom`.
 
 - [state](https://github.com/duchiporexia/rt-state#create)
 
