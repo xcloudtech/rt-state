@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 export interface StateV<T> {
     value: T;
 }
@@ -22,7 +24,8 @@ export interface Watcher {
     unwatch(): void;
 }
 
-export interface Provider<P, I> {
-    init(value: I): Provider<P, I>;
-    use(): P;
+export interface Provider<T, I> {
+    init(value: I): Provider<T, I>;
+    use(): T; // use it only in functional component.
+    Context: React.Context<T>; // use it only in class component.
 }

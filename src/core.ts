@@ -3,13 +3,12 @@ import { getProxy } from './proxy';
 import { Target } from './common';
 
 type Key = string | number;
-
 type ExecutorSet = Set<Executor>;
 type KeyExecutorSet = Map<Key, ExecutorSet>;
 
 const targetMap = new WeakMap<Target, KeyExecutorSet>();
-
 let currExecutor: Executor = null;
+let depSetForBatchUpdate: Set<Executor> = null;
 
 // just to wrap any data within the value field of a state.
 // can be used for any data, especially for number and string, or an array.
@@ -134,8 +133,6 @@ export function trigger(target: Target, key: Key) {
         }
     }
 }
-
-let depSetForBatchUpdate: Set<Executor> = null;
 
 export function batchUpdate(cb: () => void) {
     if (currExecutor) {

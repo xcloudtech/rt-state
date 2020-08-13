@@ -1,10 +1,5 @@
 import { StateV } from './model';
 import { stateV } from './core';
-import { useMemo } from 'react';
-
-export function useRStateArray<T>(initValues?: T[]): StateArray<T> {
-    return useMemo(() => stateArray(initValues), []);
-}
 
 export function stateArray<T>(initValues: T[]): StateArray<T> {
     return new _StateArray(initValues);

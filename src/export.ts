@@ -2,9 +2,9 @@ import { create, createS, hooks, watch, link, setDebugComponentName } from './fu
 import { createProvider } from './provider';
 import { state, stateV, stateS, setStateS, batchUpdate } from './core';
 import { StateV, Context, Watcher, WatchOptions } from './model';
-import { stateArray, useRStateArray, StateArray, StateArrayItem } from './long_array';
-import { view } from './state_watcher';
-import { useRState, useRStateV, useRStateS } from './useFunc';
+import { stateArray, StateArray, StateArrayItem } from './long_array';
+import { view } from './view';
+import { useRState, useRStateV, useRStateS, useRStateArray } from './func_use';
 
 export {
     state,

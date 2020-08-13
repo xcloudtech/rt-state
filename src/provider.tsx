@@ -22,7 +22,7 @@ export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I>
         return { ...provider, initValue: value } as Provider<T, I>;
     }
 
-    const provider = { use, init, _Provider };
+    const provider = { use, init, _Provider, Context };
 
     return { ...provider, initValue: null } as Provider<T, I>;
 }
