@@ -1,14 +1,29 @@
 import * as React from 'react';
-import { Context, useMemo } from 'react';
+import { Context, useEffect, useMemo, useRef } from 'react';
 import { _checkAndPush } from './func';
 import { Provider } from './model';
+import { ctxContainer } from './context';
 
 export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I> {
     const Context = React.createContext<T>(null);
 
     function _Provider(props) {
         const { initValue } = props;
-        const value = useMemo(() => setup(initValue), []);
+        const unWatchersRef = useRef<any[]>(null);
+        const value = useMemo(() => {
+            ctxContainer.unWatchersInProviderSetup = [];
+            const val = setup(initValue);
+            unWatchersRef.current = ctxContainer.unWatchersInProviderSetup;
+            ctxContainer.unWatchersInProviderSetup = null;
+            return val;
+        }, []);
+        useEffect(() => {
+            return () => {
+                unWatchersRef.current.forEach((cb) => {
+                    cb();
+                });
+            };
+        }, []);
         return <Context.Provider value={value}>{props.children}</Context.Provider>;
     }
 

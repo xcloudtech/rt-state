@@ -188,6 +188,12 @@ const globalX = (() => {
 
 const ProviderX = createProvider((initValue: number) => {
     const x = stateV(initValue ?? 0);
+    rst.watch(
+        (values, oldValues) => {
+            console.log('x has changed:', values, oldValues);
+        },
+        () => [x.value],
+    );
     const add = () => x.value++;
     return { x, add };
 });
@@ -199,9 +205,12 @@ const ProviderV = createProvider(() => {
 
 const ProviderDemoComp = createS(
     () => {
+        const [state, setstate] = useState(0);
         return (
             <>
-                <ProviderDemoParentComp />
+                <button onClick={() => setstate(state + 1)}> add one </button>
+                {state % 5 === 0 ? null : <ProviderDemoParentComp />}
+
                 <ProviderDemoParentComp />
             </>
         );

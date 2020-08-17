@@ -159,8 +159,10 @@ function watchWithOption(
 
     const executor = new Executor(getter, update, 'watcher');
 
-    // If it is not a global watcher.
-    if (!isGlobal) {
+    if (ctxContainer.unWatchersInProviderSetup != null) {
+        ctxContainer.unWatchersInProviderSetup.push(() => executor.unwatch());
+    } else if (!isGlobal) {
+        // If it is not a global watcher nor in provider setup.
         const currCtx = ctxContainer.currCtx;
         if (!currCtx || !currCtx._isInSetup) {
             throw new Error(

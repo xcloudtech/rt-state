@@ -86,4 +86,5 @@ export class _Context<T> {
 
 export const ctxContainer: {
     currCtx: _Context<any>;
-} = { currCtx: null };
+    unWatchersInProviderSetup: (() => void)[];
+} = { currCtx: null, unWatchersInProviderSetup: null };
