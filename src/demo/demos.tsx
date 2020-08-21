@@ -95,9 +95,14 @@ const StateSComp = create((ctx) => {
     setDebugComponentName('StateSComp');
     console.log(`${ctx.debugName} setup`);
 
-    const data = stateS({ v1: 11, v2: 22 });
-    const addAndUpdate = () => {
-        rst.setStateS(data, { v1: data.v1 + 1, v2: data.v2 + 1 });
+    const data = stateS({ v1: 0, v2: 0 });
+    const addBySetStateS = () => {
+        rst.setStateS(data, { v1: data.v1 + 10, v2: data.v2 + 20 });
+    };
+    const addByRefreshStateS = () => {
+        data.v1 += 1;
+        data.v2 += 2;
+        rst.refreshStateS(data);
     };
     const justAdd = () => {
         data.v1 += 1000;
@@ -110,7 +115,8 @@ const StateSComp = create((ctx) => {
         return (
             <div>
                 v1: {data.v1}&nbsp;v2:{data.v2}
-                <button onClick={addAndUpdate}>addUpdate</button>
+                <button onClick={addBySetStateS}>addBySetStateS</button>
+                <button onClick={addByRefreshStateS}>addByRefreshStateS</button>
                 <button onClick={justAdd}>add</button>
             </div>
         );

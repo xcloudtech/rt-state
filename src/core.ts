@@ -42,6 +42,12 @@ export function setStateS<T>(stateS: T, newValue: T) {
     stateS['any'] = newValue;
 }
 
+const DUMMY_OBJ_FOR_REFRESH: any = { type: 'dummy' };
+
+export function refreshStateS<T>(stateS: T) {
+    setStateS(stateS, DUMMY_OBJ_FOR_REFRESH);
+}
+
 const OWN_KEYS_ERR_MSG = `Do not use any key iterator for this object, including spread operator, JSON.stringify, or render it directly, because it's a state, which is a data Proxy.`;
 
 const valueHandlers = {
@@ -58,6 +64,9 @@ const valueHandlers = {
     set(target: StateV<any>, key: Key, value: any) {
         if (isInSetStateS) {
             isInSetStateS = false;
+            if (value === DUMMY_OBJ_FOR_REFRESH) {
+                value = { ...target.value };
+            }
             target.value = value;
             return true;
         }
