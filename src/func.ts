@@ -17,10 +17,7 @@ interface CreateConfig<T> {
     providers?: Provider<any, any>[];
     defaultProps?: DefaultProps<T>;
 }
-export function create<T extends object>(
-    setup: (ctx: Context<T>) => (props: T) => React.ReactNode,
-    config?: CreateConfig<T>,
-) {
+export function create<T extends object>(setup: (ctx: Context<T>) => React.FC<T>, config?: CreateConfig<T>) {
     const Comp = (props: T) => {
         const update = React.useReducer((s) => s + 1, 0)[1];
         const ctxRef = React.useRef<_Context<T>>(new _Context(props, update));
