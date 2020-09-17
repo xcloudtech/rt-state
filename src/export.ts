@@ -1,3 +1,4 @@
+import { HooksRef } from './common';
 import { create, createS, hooks, watch, link, setDebugComponentName } from './func';
 import { createProvider } from './provider';
 import { state, stateV, stateS, setStateS, refreshStateS, batchUpdate } from './core';
@@ -26,5 +27,5 @@ export {
     batchUpdate,
     view,
 };
-export type { WatchOptions, Watcher, StateV, Context, StateArray, StateArrayItem };
+export type { HooksRef, WatchOptions, Watcher, StateV, Context, StateArray, StateArrayItem };
 export { setDebugComponentName };

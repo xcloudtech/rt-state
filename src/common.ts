@@ -1,5 +1,9 @@
 export type Target = object;
 
+export interface HooksRef<T> {
+    current: T;
+}
+
 type RequiredKeys<T> = {
     [K in keyof T]-?: {} extends Pick<T, K> ? never : K;
 }[keyof T];

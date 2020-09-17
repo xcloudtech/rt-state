@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { track, trigger, Executor } from './core';
 import { Context, Provider, StateV, Watcher, WatchOptions } from './model';
-import { DefaultProps, DepsReturnType, notEqual } from './common';
+import { DefaultProps, DepsReturnType, HooksRef, notEqual } from './common';
 import { _Context, ctxContainer } from './context';
 import { _provide } from './provider';
 
@@ -43,15 +43,13 @@ export function create<T extends object>(setup: (ctx: Context<T>) => React.FC<T>
             ctx.addDisposeCallBack(() => executor.unwatch());
             ctx.executor = executor;
         }
-        const dataFromHooks = ctx.use();
-        if (dataFromHooks != null) {
-            const hooksData = ctxContainer.currCtx._dataFromHooks;
-            if (typeof dataFromHooks !== 'object') {
-                throw new Error('hooks func should return an object.');
+        if (!ctx._isInSetup) {
+            const hooksData = ctx.use();
+            const hooksRef = ctxContainer.currCtx.hooksRef;
+            if (hooksRef !== undefined) {
+                // Has called hooks function, so need to update the data ref.
+                hooksRef.current = hooksData;
             }
-            Object.keys(dataFromHooks).forEach((k) => {
-                hooksData[k] = dataFromHooks[k];
-            });
         }
 
         if (ctx._isInSetup) {
@@ -68,7 +66,7 @@ export function createS<T extends object>(Comp: React.FC<T>, config?: CreateConf
     return create<T>((ctx) => Comp, config);
 }
 
-export function hooks<T>(cb: () => T): T {
+export function hooks<T>(cb: () => T): HooksRef<T> {
     const currCtx = ctxContainer.currCtx;
     if (!currCtx._isInSetup) {
         throw new Error('"hooks" can only be used within the setup function of the component.');
@@ -77,8 +75,10 @@ export function hooks<T>(cb: () => T): T {
         throw new Error('"hooks" can only be used once within the component.');
     }
     currCtx._use = cb;
-    currCtx._dataFromHooks = cb() ?? {};
-    return currCtx._dataFromHooks;
+
+    const current = cb();
+    currCtx.hooksRef = { current };
+    return currCtx.hooksRef;
 }
 
 export function _checkAndPush<P>(provider: Provider<P, any>) {

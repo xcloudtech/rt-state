@@ -21,6 +21,7 @@ import {
     rst,
     stateS,
     useRStateS,
+    HooksRef,
 } from '../'; // 'rt-state';
 
 const delay = (ms: number) => {
@@ -369,20 +370,22 @@ const ForceUpdateComp = create<{ stateFromParent: { parentNum: number } }>((ctx)
     };
 });
 
-const hookCompSetup = (hCtx: any) => {
+const hookCompSetup = (hooksRef: HooksRef<any>) => {
     const addOne = () => {
-        hCtx.setNum(hCtx.num + 1);
+        const ref = hooksRef.current;
+        ref.setNum(ref.num + 1);
     };
     const add100 = () => {
-        hCtx.setNum(hCtx.num + 100);
+        const ref = hooksRef.current;
+        ref.setNum(ref.num + 100);
     };
-    return { hCtx, addOne, add100 };
+    return { addOne, add100 };
 };
 
 const HookComp = create((ctx) => {
     setDebugComponentName('HookComp');
     console.log(`${ctx.debugName} setup`);
-    const hCtx = hooks(() => {
+    const hooksRef = hooks(() => {
         //// can't use watch here!
         // watch(
         //     () => {
@@ -402,7 +405,7 @@ const HookComp = create((ctx) => {
     //     useState();
     // });
 
-    const sCtx = hookCompSetup(hCtx);
+    const sCtx = hookCompSetup(hooksRef);
 
     return () => {
         // // can't use "hooks" in render function.
@@ -416,7 +419,7 @@ const HookComp = create((ctx) => {
                 <button onClick={sCtx.addOne}>add1</button>&nbsp;
                 <button onClick={sCtx.add100}>add100</button>&nbsp;
                 <br />
-                <span>num: {hCtx.num}</span>
+                <span>num: {hooksRef.current.num}</span>
             </div>
         );
     };

@@ -1,13 +1,13 @@
 import { Provider, StateV } from './model';
 import { Executor, stateV } from './core';
-import { DefaultProps } from './common';
+import { DefaultProps, HooksRef } from './common';
 
 // Context can be used in any functions within the setup function.
 export class _Context<T> {
     private cleanup: Set<() => void>;
     _providers: Provider<any, any>[];
     _use: () => any;
-    _dataFromHooks: any;
+    hooksRef: HooksRef<any>;
     executor: Executor;
     _compDebugName: string;
     _props: T;
@@ -39,9 +39,6 @@ export class _Context<T> {
         }
     }
     use() {
-        if (this._isInSetup) {
-            return null;
-        }
         ctxContainer.currCtx._providers?.forEach((p) => {
             p.use();
         });
