@@ -100,10 +100,10 @@ const StateSComp = create((ctx) => {
     const addBySetStateS = () => {
         rst.setStateS(data, { v1: data.v1 + 10, v2: data.v2 + 20 });
     };
-    const addByRefreshStateS = () => {
+    const addByForceUpdate = () => {
         data.v1 += 1;
         data.v2 += 2;
-        rst.refreshStateS(data);
+        rst.forceUpdate(data);
     };
     const justAdd = () => {
         data.v1 += 1000;
@@ -117,7 +117,7 @@ const StateSComp = create((ctx) => {
             <div>
                 v1: {data.v1}&nbsp;v2:{data.v2}
                 <button onClick={addBySetStateS}>addBySetStateS</button>
-                <button onClick={addByRefreshStateS}>addByRefreshStateS</button>
+                <button onClick={addByForceUpdate}>addByForceUpdate</button>
                 <button onClick={justAdd}>add</button>
             </div>
         );

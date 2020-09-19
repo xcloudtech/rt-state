@@ -44,7 +44,7 @@ export function setStateS<T>(stateS: T, newValue: T) {
 
 const DUMMY_OBJ_FOR_REFRESH: any = { type: 'dummy' };
 
-export function refreshStateS<T>(stateS: T) {
+export function forceUpdate<T>(stateS: T) {
     setStateS(stateS, DUMMY_OBJ_FOR_REFRESH);
 }
 
