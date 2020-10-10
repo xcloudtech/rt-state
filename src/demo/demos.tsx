@@ -60,7 +60,7 @@ export const ReactiveDemo = create((ctx) => {
         return (
             <div>
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
-                <UseRStateSComp />
+                <UseRStateSComp style={{ backgroundColor: 'green' }} />
                 <UseRStateComp />
                 <StateSComp />
                 <ProviderDemoComp />
@@ -124,7 +124,7 @@ const StateSComp = create((ctx) => {
     };
 });
 
-const UseRStateSComp = createS(() => {
+const UseRStateSComp = createS((props) => {
     console.log('UseRStateSComp render');
 
     const data = rst.useRStateS({ x: 30 });
@@ -140,7 +140,7 @@ const UseRStateSComp = createS(() => {
     }
 
     return (
-        <div>
+        <div style={props.style} className={props.className}>
             <button onClick={add}>add</button>
             {reactiveNode}
         </div>
@@ -266,7 +266,7 @@ const ProviderDemoChildComp = create((ctx) => {
         return (
             <>
                 <button onClick={addX}>addX</button>&nbsp;
-                <span>{x}</span>
+                <span style={props.style}>{x}</span>
                 <div>
                     <button onClick={globalX.add}>addToGlobalX</button>
                     {globalX.x.value}

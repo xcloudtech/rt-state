@@ -17,7 +17,9 @@ interface CreateConfig<T> {
     providers?: Provider<any, any>[];
     defaultProps?: DefaultProps<T>;
 }
-export function create<T extends object>(setup: (ctx: Context<T>) => React.FC<T>, config?: CreateConfig<T>) {
+type RFC<T> = React.FC<T & { style?: React.CSSProperties; className?: string }>;
+
+export function create<T extends object>(setup: (ctx: Context<T>) => RFC<T>, config?: CreateConfig<T>): RFC<T> {
     const Comp = (props: T) => {
         const update = React.useReducer((s) => s + 1, 0)[1];
         const ctxRef = React.useRef<_Context<T>>(new _Context(props, update));
@@ -62,7 +64,7 @@ export function create<T extends object>(setup: (ctx: Context<T>) => React.FC<T>
     return _provide(config?.providers, Comp);
 }
 
-export function createS<T extends object>(Comp: React.FC<T>, config?: CreateConfig<T>) {
+export function createS<T extends object>(Comp: RFC<T>, config?: CreateConfig<T>) {
     return create<T>((ctx) => Comp, config);
 }
 
