@@ -4,6 +4,11 @@ export interface StateV<T> {
     value: T;
 }
 
+export interface StateS<T> {
+    value: T;
+    forceUpdate(): void;
+}
+
 export interface Context<T> {
     readonly debugName: string;
     active: boolean;

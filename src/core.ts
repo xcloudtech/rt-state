@@ -1,4 +1,4 @@
-import { StateV } from './model';
+import { StateS, StateV } from './model';
 import { getProxy } from './proxy';
 import { Target } from './common';
 
@@ -26,55 +26,34 @@ function checkStateSParam<T>(value?: T) {
     }
 }
 
-export function stateS<T>(initValue?: T): T {
-    checkStateSParam(initValue);
-    const stateValue = stateV(initValue);
-    return getProxy(stateValue, valueHandlers);
-}
+export class _StateS<T extends object> {
+    private _value: T;
+    private _stateV: StateV<number>;
 
-let isInSetStateS = false;
-export function setStateS<T>(stateS: T, newValue: T) {
-    checkStateSParam(newValue);
-    if (isInSetStateS) {
-        throw new Error('isInSetStateS should be false');
+    constructor(initValue: T) {
+        this._value = initValue ?? ({} as any);
+        this._stateV = stateV(0);
     }
-    isInSetStateS = true;
-    stateS['any'] = newValue;
+
+    get value() {
+        // Don't delete! connect view to data.
+        const count = this._stateV.value;
+        return this._value;
+    }
+
+    set value(value: T) {
+        this._value = value;
+    }
+
+    forceUpdate() {
+        this._stateV.value++;
+    }
 }
 
-const DUMMY_OBJ_FOR_REFRESH: any = { type: 'dummy' };
-
-export function forceUpdate<T>(stateS: T) {
-    setStateS(stateS, DUMMY_OBJ_FOR_REFRESH);
+export function stateS<T extends object>(initValue?: T): StateS<T> {
+    checkStateSParam(initValue);
+    return new _StateS(initValue);
 }
-
-const OWN_KEYS_ERR_MSG = `Do not use any key iterator for this object, including spread operator, JSON.stringify, or render it directly, because it's a state, which is a data Proxy.`;
-
-const valueHandlers = {
-    get(target: StateV<any>, key: Key) {
-        if (isInSetStateS) {
-            throw new Error('unreached code');
-        }
-        const realTarget = target.value;
-        if (realTarget == null) {
-            return undefined;
-        }
-        return realTarget[key];
-    },
-    set(target: StateV<any>, key: Key, value: any) {
-        if (isInSetStateS) {
-            isInSetStateS = false;
-            if (value === DUMMY_OBJ_FOR_REFRESH) {
-                value = { ...target.value };
-            }
-            target.value = value;
-            return true;
-        }
-        const realTarget = target.value;
-        realTarget[key] = value;
-        return true;
-    },
-};
 
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.

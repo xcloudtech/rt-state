@@ -61,8 +61,8 @@ export const ReactiveDemo = create((ctx) => {
             <div>
                 {/*<div>{JSON.stringify(gState.num)}</div>*/}
                 <UseRStateSComp style={{ backgroundColor: 'green' }} />
-                <UseRStateComp />
                 <StateSComp />
+                <UseRStateComp />
                 <ProviderDemoComp />
                 <WatchTestComp />
                 <ShowCountParent />
@@ -96,29 +96,29 @@ const StateSComp = create((ctx) => {
     setDebugComponentName('StateSComp');
     console.log(`${ctx.debugName} setup`);
 
-    const data = stateS({ v1: 0, v2: 0 });
-    const addBySetStateS = () => {
-        rst.setStateS(data, { v1: data.v1 + 10, v2: data.v2 + 20 });
-    };
+    const state = stateS({ v1: 0, v2: 0 });
     const addByForceUpdate = () => {
-        data.v1 += 1;
-        data.v2 += 2;
-        rst.forceUpdate(data);
+        const { value } = state;
+        value.v1 += 1;
+        value.v2 += 1;
+        state.forceUpdate();
+    };
+    const justReplace = () => {
+        state.value = { v1: state.value.v1 + 10, v2: state.value.v2 + 10 };
     };
     const justAdd = () => {
-        data.v1 += 1000;
-        data.v2 += 1000;
-        console.log('no update');
+        state.value.v1 += 1000;
     };
 
     return (props) => {
+        const { value: data } = state;
         console.log(`StateSComp render: ${data.v1} ${data.v2}`);
         return (
             <div>
                 v1: {data.v1}&nbsp;v2:{data.v2}
-                <button onClick={addBySetStateS}>addBySetStateS</button>
                 <button onClick={addByForceUpdate}>addByForceUpdate</button>
-                <button onClick={justAdd}>add</button>
+                <button onClick={justReplace}>justReplace</button>
+                <button onClick={justAdd}>justAdd</button>
             </div>
         );
     };
@@ -127,7 +127,8 @@ const StateSComp = create((ctx) => {
 const UseRStateSComp = createS((props) => {
     console.log('UseRStateSComp render');
 
-    const data = rst.useRStateS({ x: 30 });
+    const state = rst.useRStateS({ x: 30 });
+    const { value: data } = state;
 
     const reactiveNode = rst.view(() => {
         console.log(`UseRStateSComp view is reactive: ${data.x}`);
@@ -135,8 +136,8 @@ const UseRStateSComp = createS((props) => {
     });
 
     function add() {
-        data.x++;
-        rst.setStateS(data, { x: data.x + 100 });
+        data.x += 100;
+        state.forceUpdate();
     }
 
     return (
