@@ -1,7 +1,7 @@
 import { HooksRef } from './common';
 import { create, createS, hooks, watch, link, setDebugComponentName } from './func';
 import { createProvider } from './provider';
-import { state, stateV, stateS, batchUpdate } from './core';
+import { state, stateV, stateS, batchUpdate, extract } from './core';
 import { StateV, StateS, Context, Watcher, WatchOptions } from './model';
 import { stateArray, StateArray, StateArrayItem } from './long_array';
 import { view } from './view';
@@ -23,6 +23,7 @@ export {
     watch,
     link,
     batchUpdate,
+    extract,
     view,
 };
 export type { HooksRef, WatchOptions, Watcher, StateV, StateS, Context, StateArray, StateArrayItem };

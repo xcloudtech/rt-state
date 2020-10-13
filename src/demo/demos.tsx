@@ -22,7 +22,8 @@ import {
     stateS,
     useRStateS,
     HooksRef,
-} from '../'; // 'rt-state';
+    extract,
+} from '../';
 
 const delay = (ms: number) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -150,11 +151,12 @@ const UseRStateSComp = createS((props) => {
 const UseRStateComp = createS(() => {
     console.log('UseRStateComp render');
 
-    const data = rst.useRState({ x: 30 });
+    const data = rst.useRState({ x: 30, y: 55 });
     const dataV = useRStateV(60);
 
     const reactiveNode = rst.view(() => {
         console.log(`UseRStateComp view is reactive: ${data.x}`);
+        console.log(extract(data));
         return <div>UseRStateComp reactive: {data.x}</div>;
     });
 
