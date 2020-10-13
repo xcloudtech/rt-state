@@ -74,9 +74,6 @@ const valueHandlers = {
         realTarget[key] = value;
         return true;
     },
-    ownKeys(target) {
-        throw new Error(OWN_KEYS_ERR_MSG);
-    },
 };
 
 // the state for an object.
@@ -106,9 +103,6 @@ const handlers = {
         const result = Reflect.set(target, key, value);
         trigger(target, key);
         return result;
-    },
-    ownKeys(target) {
-        throw new Error(OWN_KEYS_ERR_MSG);
     },
 };
 
