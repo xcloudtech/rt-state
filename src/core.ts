@@ -50,7 +50,7 @@ export class _StateS<T extends object> {
     }
 }
 
-export function stateS<T extends object>(initValue?: T): StateS<T> {
+export function stateS<T extends object>(initValue?: T | null): StateS<T> {
     checkStateSParam(initValue);
     return new _StateS(initValue);
 }
@@ -58,7 +58,7 @@ export function stateS<T extends object>(initValue?: T): StateS<T> {
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
 export function state<T extends Target>(initValue: T): T {
-    if (initValue != null && (typeof initValue === 'number' || typeof initValue === 'string')) {
+    if (initValue == null || typeof initValue === 'number' || typeof initValue === 'string') {
         throw new Error(`initValue cannot be number or string, please use stateV.`);
     }
     if (targetMap.has(initValue)) {

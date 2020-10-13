@@ -1,3 +1,4 @@
+import 'core-js';
 import * as React from 'react';
 import { ReactiveDemo } from './demos';
 import { render } from 'react-dom';
