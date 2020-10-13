@@ -1,14 +1,10 @@
-import { StateS, StateV } from './model';
+import { StateS } from './model';
 import { useMemo } from 'react';
-import { state, stateS, stateV } from './core';
+import { state, stateS } from './core';
 import { Target } from './common';
 import { stateArray, StateArray } from './long_array';
 
-export function useRStateV<T>(initValue?: T): StateV<T> {
-    return useMemo(() => stateV(initValue), []);
-}
-
-export function useRStateS<T extends Target>(initValue?: T): StateS<T> {
+export function useRStateS<T>(initValue?: T): StateS<T> {
     return useMemo(() => stateS(initValue), []);
 }
 

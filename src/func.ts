@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { track, trigger, Executor } from './core';
-import { Context, Provider, StateV, Watcher, WatchOptions } from './model';
+import { Context, Provider, StateLink, Watcher, WatchOptions } from './model';
 import { DefaultProps, DepsReturnType, HooksRef, notEqual } from './common';
 import { _Context, ctxContainer } from './context';
 import { _provide } from './provider';
@@ -95,7 +95,7 @@ export function _checkAndPush<P>(provider: Provider<P, any>) {
     }
 }
 
-export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateV<T> {
+export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateLink<T> {
     const linkId = {};
     let value: T;
 
@@ -117,7 +117,7 @@ export function link<T>(getter: () => T, setter?: (v: T) => void, options?: Watc
                 setter(newValue);
             }
         },
-    } as StateV<T>;
+    } as StateLink<T>;
 }
 
 export function watch<T1, T2, T3, T4, T5, T6, T7, T8, T9>(

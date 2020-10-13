@@ -1,4 +1,4 @@
-import { State, StateS, StateV } from './model';
+import { State, StateS } from './model';
 import { getProxy } from './proxy';
 import { Target } from './common';
 
@@ -10,42 +10,37 @@ const targetMap = new WeakMap<Target, KeyExecutorSet>();
 let currExecutor: Executor = null;
 let depSetForBatchUpdate: Set<Executor> = null;
 
-// just to wrap any data within the value field of a state.
-// can be used for any data, especially for number and string, or an array.
-// WARNING: just watch one level: the value field of the state.
-export function stateV<T>(initValue?: T): StateV<T> {
-    return state({ value: initValue });
-}
+export class _StateS<T> {
+    private _value: T;
+    private _state: State<{ value: number }>;
 
-function checkStateSParam<T>(value?: T) {
-    if (value == null || typeof value === 'number' || typeof value === 'string') {
-        throw new Error(`value cannot be number or string, please use stateV.`);
-    }
-}
-
-export class _StateS<T extends object> {
-    private readonly _value: T;
-    private _stateV: StateV<number>;
-
-    constructor(initValue: T) {
-        'use strict';
-        this._value = Object.seal(initValue);
-        this._stateV = stateV(0);
+    constructor(initValue?: T) {
+        this._value = initValue;
+        this._state = state({ value: 0 });
     }
 
     get value() {
         // Don't delete! connect view to data.
-        const count = this._stateV.value;
+        const count = this._state.value;
         return this._value;
     }
 
+    set value(val) {
+        const oldValue = this._value;
+        this._value = val;
+        if (oldValue !== val) {
+            this.forceUpdate();
+        }
+    }
+
     forceUpdate() {
-        this._stateV.value++;
+        this._state.value++;
     }
 }
-
-export function stateS<T extends object>(initValue: T | null): StateS<T> {
-    checkStateSParam(initValue);
+// just to wrap any data within the value field of a state.
+// can be used for any data, especially for number and string, or an array.
+// WARNING: just watch one level: the value field of the state.
+export function stateS<T>(initValue?: T): StateS<T> {
     return new _StateS(initValue);
 }
 const STATE_INTERNAL_KEY = '`.~2@!#$%^)|?&*d_(';
@@ -68,11 +63,10 @@ export function state<T extends Target>(initValue: T): State<T> {
 
 export function extract<T>(state: State<T>): T {
     const value = state[STATE_INTERNAL_KEY];
-    if (value == null || typeof value !== 'object') {
+    if (value == null || value[STATE_INTERNAL_KEY] !== value) {
         throw new Error('invalid state.');
     }
-    const newData = { ...value };
-    delete newData[STATE_INTERNAL_KEY];
+    const { [`${STATE_INTERNAL_KEY}`]: internalValue, ...newData } = value;
     return newData;
 }
 

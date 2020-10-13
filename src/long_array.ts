@@ -1,5 +1,5 @@
-import { StateV } from './model';
-import { stateV } from './core';
+import { stateS } from './core';
+import { StateS } from './model';
 
 export function stateArray<T>(initValues: T[]): StateArray<T> {
     return new _StateArray(initValues);
@@ -8,6 +8,7 @@ export function stateArray<T>(initValues: T[]): StateArray<T> {
 // this class is an optimized implementation of an array state.
 export interface StateArray<T> {
     values: T[];
+    forceUpdate(): void;
     readonly length: number;
     get(idx: number): T;
     set(idx: number, value: T);
@@ -26,9 +27,9 @@ export interface StateArray<T> {
 }
 
 class _StateArray<T> {
-    private _state: StateV<StateArrayItem<T>[]>;
+    private _state: StateS<StateArrayItem<T>[]>;
     constructor(initValues: T[]) {
-        this._state = stateV();
+        this._state = stateS<_StateArrayItem<T>[]>();
         this.values = initValues;
     }
     get values(): T[] {
@@ -40,6 +41,9 @@ class _StateArray<T> {
             items.push(new _StateArrayItem(v));
         });
         this._state.value = items;
+    }
+    forceUpdate() {
+        this._state.forceUpdate();
     }
     get length() {
         return this._state.value.length;
@@ -107,25 +111,27 @@ class _StateArray<T> {
     }
 }
 
-export interface StateArrayItem<T> {
-    value: T;
+export interface StateArrayItem<T> extends StateS<T> {
     readonly key: number;
 }
 
 class _StateArrayItem<T> {
     static LongArrayItemKeySeq = 1;
-    private _state: StateV<T>;
+    private _state: StateS<T>;
     private readonly _key: number;
 
-    constructor(initValue: T) {
+    constructor(initValue?: T) {
         this._key = _StateArrayItem.LongArrayItemKeySeq++;
-        this._state = stateV(initValue) as any;
+        this._state = stateS(initValue);
     }
     get value(): T {
         return this._state.value;
     }
     set value(value: T) {
         this._state.value = value;
+    }
+    forceUpdate() {
+        this._state.forceUpdate();
     }
     get key() {
         return this._key;

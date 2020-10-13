@@ -3,7 +3,6 @@ import { useRef, useState } from 'react';
 import {
     create,
     state,
-    stateV,
     link,
     watch,
     stateArray,
@@ -12,17 +11,17 @@ import {
     createS,
     hooks,
     StateArray,
-    StateV,
     batchUpdate,
     createProvider,
     useRState,
-    useRStateV,
     view,
     rst,
     stateS,
     useRStateS,
     HooksRef,
     extract,
+    StateS,
+    StateLink,
 } from '../';
 
 const delay = (ms: number) => {
@@ -152,7 +151,7 @@ const UseRStateComp = createS(() => {
     console.log('UseRStateComp render');
 
     const data = rst.useRState({ x: 30, y: 55 });
-    const dataV = useRStateV(60);
+    const dataS = useRStateS(60);
 
     const reactiveNode = rst.view(() => {
         console.log(`UseRStateComp view is reactive: ${data.x}`);
@@ -162,7 +161,7 @@ const UseRStateComp = createS(() => {
 
     function add() {
         data.x++;
-        dataV.value++;
+        dataS.value++;
     }
 
     return (
@@ -170,19 +169,19 @@ const UseRStateComp = createS(() => {
             <button onClick={add}>add</button>
             {/*<div>no reactive: {(data)}</div>*/}
             {reactiveNode}
-            <UseRTStateShowComp data={data} dataV={dataV} />
+            <UseRTStateShowComp data={data} dataS={dataS} />
         </div>
     );
 });
 
 const UseRTStateShowComp = createS<{
     data: { x: number };
-    dataV: { value: number };
+    dataS: { value: number };
 }>((props) => {
     console.log('UseRTStateShowComp render');
     return (
         <span>
-            {props.data.x} {props.dataV.value}
+            {props.data.x} {props.dataS.value}
         </span>
     );
 });
@@ -190,13 +189,13 @@ const UseRTStateShowComp = createS<{
 //////////////////////////
 
 const globalX = (() => {
-    const x = stateV(100);
+    const x = stateS(100);
     const add = () => x.value++;
     return { x, add };
 })();
 
 const ProviderX = createProvider((initValue: number) => {
-    const x = stateV(initValue ?? 0);
+    const x = stateS(initValue ?? 0);
     rst.watch(
         (values, oldValues) => {
             console.log('x has changed:', values, oldValues);
@@ -207,7 +206,7 @@ const ProviderX = createProvider((initValue: number) => {
     return { x, add };
 });
 const ProviderV = createProvider(() => {
-    const x = stateV(200);
+    const x = stateS(200);
     const add = () => x.value++;
     return { x, add };
 });
@@ -430,7 +429,7 @@ const HookComp = create((ctx) => {
 const TestBatchUpdateComp = create((ctx) => {
     setDebugComponentName('TestBatchUpdateComp');
     console.log(`${ctx.debugName} setup`);
-    const data = stateV(100);
+    const data = stateS(100);
     return () => {
         console.log(`${ctx.debugName} render`);
         return (
@@ -563,18 +562,18 @@ const ShowCount = create<{ name: string }>((ctx) => {
                 {props.name}: {count}
                 <ShowCountChild name={'ShowCountChild'} count={null} />
                 <ShowCountLinkChild />
-                <ShowCountStateVChild name={'ShowCountStateVChild'} />
+                <ShowCountStateSChild name={'ShowCountStateSChild'} />
             </div>
         );
     };
 });
 
-const ShowCountStateVChild = create<{ name: string }>((ctx) => {
-    setDebugComponentName('ShowCountStateVChild');
+const ShowCountStateSChild = create<{ name: string }>((ctx) => {
+    setDebugComponentName('ShowCountStateSChild');
     console.log(`${ctx.debugName} setup`);
 
-    const one = stateV(100);
-    const two = stateV(200);
+    const one = stateS(100);
+    const two = stateS(200);
     const third = state({ val: 300 });
 
     const plusOne = () => {
@@ -623,7 +622,7 @@ const ShowCountLinkChild = create((ctx) => {
     console.log(`${ctx.debugName} setup`);
 
     const doubleCount = link<number>(() => gState.count * 2);
-    const doublePlusCount: StateV<number> = link(
+    const doublePlusCount: StateLink<number> = link(
         () => doubleCount.value + 1000,
         (newValue) => {
             gState.count = newValue;
@@ -639,8 +638,9 @@ const ShowCountLinkChild = create((ctx) => {
                 </div>
                 <button
                     onClick={() => {
-                        const v = doublePlusCount.value;
-                        doublePlusCount.value = v;
+                        // should update value
+                        doublePlusCount.value = doublePlusCount.value;
+                        console.log('value is updated!');
                     }}>
                     linkAdd
                 </button>
@@ -693,7 +693,7 @@ const ArrComp = create((ctx) => {
     console.log(`${ctx.debugName} setup`);
 
     let gKey = 100;
-    const arr = stateV([]);
+    const arr = stateS([]);
     const ItemComp = create<{ item: number }>((childCtx) => {
         setDebugComponentName('ItemComp');
         console.log(`${childCtx.debugName} ${childCtx.props.item} setup`);
@@ -713,14 +713,14 @@ const ArrComp = create((ctx) => {
                 <button
                     onClick={() => {
                         arr.value.push(gKey++);
-                        arr.value = [...arr.value];
+                        arr.forceUpdate();
                     }}>
                     add to arr
                 </button>
                 <button
                     onClick={() => {
                         arr.value.pop();
-                        arr.value = [...arr.value];
+                        arr.forceUpdate();
                     }}>
                     delete from arr
                 </button>
@@ -728,7 +728,7 @@ const ArrComp = create((ctx) => {
                     onClick={() => {
                         gKey += 100;
                         arr.value[1] = gKey;
-                        arr.value = [...arr.value];
+                        arr.forceUpdate();
                         gKey += 1;
                     }}>
                     change second item
@@ -767,21 +767,6 @@ const LongArrayComp = create((ctx) => {
 
     console.log('watcher debug name:', watcher.debugName);
 
-    const LongArrayItemComp = create<{ item: StateArrayItem<number> }>((childCtx) => {
-        setDebugComponentName('LongArrayItemComp');
-        const itemValue = childCtx.props.item.value;
-        console.log(`${childCtx.debugName} ${itemValue} setup`);
-
-        childCtx.onDispose(() => {
-            console.log(`${childCtx.debugName} ${itemValue} teardown`);
-        });
-
-        return (props) => {
-            console.log(`${childCtx.debugName} ${props.item.value} render`);
-            return <span>{props.item.value}&nbsp;</span>;
-        };
-    });
-
     return () => {
         // console.log('LongArrayComp render', JSON.stringify(arr.value));
         console.log(`${ctx.debugName} render`);
@@ -789,6 +774,15 @@ const LongArrayComp = create((ctx) => {
             <>
                 <br />
                 LongArrayComp &nbsp;
+                {rst.view(() => {
+                    // watch the change of both arr and its items.
+                    const v = arr.values;
+                    console.log('view render: watch arr and its items.');
+                    return <span />;
+                })}
+                <button onClick={() => arr.forceUpdate()}>forceUpdate arr</button>
+                <button onClick={() => filteredArr.forceUpdate()}>forceUpdate filteredArr</button>
+                <br />
                 <button onClick={() => arr.push(gKey++)}>add to arr</button>
                 <button onClick={() => arr.pop()}>delete from arr</button>
                 <button
@@ -810,6 +804,21 @@ const LongArrayComp = create((ctx) => {
                 })}
             </>
         );
+    };
+});
+
+const LongArrayItemComp = create<{ item: StateArrayItem<number> }>((childCtx) => {
+    setDebugComponentName('LongArrayItemComp');
+    const itemValue = childCtx.props.item.value;
+    console.log(`${childCtx.debugName} ${itemValue} setup`);
+
+    childCtx.onDispose(() => {
+        console.log(`${childCtx.debugName} ${itemValue} teardown`);
+    });
+
+    return (props) => {
+        console.log(`${childCtx.debugName} ${props.item.value} render`);
+        return <button onClick={() => props.item.forceUpdate()}>item:{props.item.value}&nbsp;</button>;
     };
 });
 

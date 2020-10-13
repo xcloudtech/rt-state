@@ -1,5 +1,5 @@
-import { Provider, StateV } from './model';
-import { Executor, stateV } from './core';
+import { Provider, StateS } from './model';
+import { Executor, stateS } from './core';
 import { DefaultProps, HooksRef } from './common';
 
 // Context can be used in any functions within the setup function.
@@ -11,7 +11,7 @@ export class _Context<T> {
     executor: Executor;
     _compDebugName: string;
     _props: T;
-    _watchProps: StateV<T>;
+    _watchProps: StateS<T>;
     _defaultProps: DefaultProps<T>;
     _updateView: () => void;
     _isInSetup: boolean;
@@ -19,7 +19,7 @@ export class _Context<T> {
     constructor(props: T, update: () => void) {
         this.cleanup = new Set<() => void>();
         this._props = props;
-        this._watchProps = stateV<T>(props);
+        this._watchProps = stateS(props);
         this._updateView = update;
         this._isInSetup = false;
     }

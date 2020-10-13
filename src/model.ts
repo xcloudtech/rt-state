@@ -2,13 +2,13 @@ import * as React from 'react';
 
 export type State<T> = T;
 
-export interface StateV<T> {
+export interface StateS<T> {
     value: T;
+    forceUpdate(): void;
 }
 
-export interface StateS<T> {
-    readonly value: T;
-    forceUpdate(): void;
+export interface StateLink<T> {
+    value: T;
 }
 
 export interface Context<T> {
