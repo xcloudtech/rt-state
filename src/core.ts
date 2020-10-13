@@ -28,7 +28,8 @@ export class _StateS<T extends object> {
     private _stateV: StateV<number>;
 
     constructor(initValue: T) {
-        this._value = initValue;
+        'use strict';
+        this._value = Object.seal(initValue);
         this._stateV = stateV(0);
     }
 
@@ -68,6 +69,9 @@ const handlers = {
         return result;
     },
     set(target: Target, key: Key, value: any) {
+        if (!Reflect.has(target, key)) {
+            throw new Error(`Cannot add property ${key}, object is not extensible`);
+        }
         const oldValue = Reflect.get(target, key);
         if (value === oldValue) {
             return true;

@@ -106,6 +106,8 @@ const StateSComp = create((ctx) => {
     const justAdd = () => {
         state.value.v1 += 100;
         state.value.v2 += 100;
+        // throw an exception
+        // state.value['ddd'] = 3;
     };
 
     return (props) => {
