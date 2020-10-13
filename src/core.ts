@@ -1,4 +1,4 @@
-import { StateS, StateV } from './model';
+import { State, StateS, StateV } from './model';
 import { getProxy } from './proxy';
 import { Target } from './common';
 
@@ -51,22 +51,22 @@ export function stateS<T extends object>(initValue: T | null): StateS<T> {
 const STATE_INTERNAL_KEY = '`.~2@!#$%^)|?&*d_(';
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
-export function state<T extends Target>(initValue: T): T {
+export function state<T extends Target>(initValue: T): State<T> {
     if (initValue == null || typeof initValue === 'number' || typeof initValue === 'string') {
         throw new Error(`initValue cannot be null, number or string.`);
     }
     if (STATE_INTERNAL_KEY in initValue) {
         throw new Error(`initValue cannot be ${STATE_INTERNAL_KEY}.`);
     }
-    initValue[STATE_INTERNAL_KEY] = initValue;
     if (targetMap.has(initValue)) {
         throw new Error('can not call state function twice for the same obj.');
     }
+    initValue[STATE_INTERNAL_KEY] = initValue;
     targetMap.set(initValue, new Map() as KeyExecutorSet);
     return getProxy(initValue, handlers);
 }
 
-export function extract<T>(state: T): T {
+export function extract<T>(state: State<T>): T {
     const value = state[STATE_INTERNAL_KEY];
     if (value == null || typeof value !== 'object') {
         throw new Error('invalid state.');

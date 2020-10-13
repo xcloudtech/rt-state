@@ -1,5 +1,7 @@
 import * as React from 'react';
 
+export type State<T> = T;
+
 export interface StateV<T> {
     value: T;
 }
