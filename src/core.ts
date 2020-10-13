@@ -18,20 +18,17 @@ export function stateV<T>(initValue?: T): StateV<T> {
 }
 
 function checkStateSParam<T>(value?: T) {
-    if (value == null) {
-        return;
-    }
-    if (typeof value === 'number' || typeof value === 'string') {
+    if (value == null || typeof value === 'number' || typeof value === 'string') {
         throw new Error(`value cannot be number or string, please use stateV.`);
     }
 }
 
 export class _StateS<T extends object> {
-    private _value: T;
+    private readonly _value: T;
     private _stateV: StateV<number>;
 
     constructor(initValue: T) {
-        this._value = initValue ?? ({} as any);
+        this._value = initValue;
         this._stateV = stateV(0);
     }
 
@@ -41,16 +38,12 @@ export class _StateS<T extends object> {
         return this._value;
     }
 
-    set value(value: T) {
-        this._value = value;
-    }
-
     forceUpdate() {
         this._stateV.value++;
     }
 }
 
-export function stateS<T extends object>(initValue?: T | null): StateS<T> {
+export function stateS<T extends object>(initValue: T | null): StateS<T> {
     checkStateSParam(initValue);
     return new _StateS(initValue);
 }

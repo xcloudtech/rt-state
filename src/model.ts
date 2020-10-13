@@ -5,7 +5,7 @@ export interface StateV<T> {
 }
 
 export interface StateS<T> {
-    value: T;
+    readonly value: T;
     forceUpdate(): void;
 }
 

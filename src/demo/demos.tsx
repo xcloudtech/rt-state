@@ -103,11 +103,9 @@ const StateSComp = create((ctx) => {
         value.v2 += 1;
         state.forceUpdate();
     };
-    const justReplace = () => {
-        state.value = { v1: state.value.v1 + 10, v2: state.value.v2 + 10 };
-    };
     const justAdd = () => {
-        state.value.v1 += 1000;
+        state.value.v1 += 100;
+        state.value.v2 += 100;
     };
 
     return (props) => {
@@ -117,7 +115,6 @@ const StateSComp = create((ctx) => {
             <div>
                 v1: {data.v1}&nbsp;v2:{data.v2}
                 <button onClick={addByForceUpdate}>addByForceUpdate</button>
-                <button onClick={justReplace}>justReplace</button>
                 <button onClick={justAdd}>justAdd</button>
             </div>
         );
