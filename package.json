@@ -1,6 +1,6 @@
 {
   "name": "rt-state",
-  "version": "0.0.75",
+  "version": "0.0.76",
   "description": "A framework built on top of react hooks",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
