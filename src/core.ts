@@ -7,6 +7,7 @@ type ExecutorSet = Set<Executor>;
 type KeyExecutorSet = Map<Key, ExecutorSet>;
 
 const targetMap = new WeakMap<Target, KeyExecutorSet>();
+const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
 let depSetForBatchUpdate: Set<Executor> = null;
 
@@ -43,39 +44,32 @@ export class _StateS<T> {
 export function stateS<T>(initValue?: T): StateS<T> {
     return new _StateS(initValue);
 }
-const STATE_INTERNAL_KEY = '`.~2@!#$%^)|?&*d_(';
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
 export function state<T extends Target>(initValue: T): State<T> {
     if (initValue == null || typeof initValue === 'number' || typeof initValue === 'string') {
         throw new Error(`initValue cannot be null, number or string.`);
     }
-    if (STATE_INTERNAL_KEY in initValue) {
-        throw new Error(`initValue cannot be ${STATE_INTERNAL_KEY}.`);
-    }
     if (targetMap.has(initValue)) {
         throw new Error('can not call state function twice for the same obj.');
     }
-    initValue[STATE_INTERNAL_KEY] = initValue;
     targetMap.set(initValue, new Map() as KeyExecutorSet);
-    return getProxy(initValue, handlers);
+    const proxy = getProxy(initValue, handlers);
+    proxyToTargetMap.set(proxy, initValue);
+    return proxy;
 }
 
 export function extract<T>(state: State<T>): T {
-    const value = state[STATE_INTERNAL_KEY];
-    if (value == null || value[STATE_INTERNAL_KEY] !== value) {
+    let target;
+    if (state == null || (target = proxyToTargetMap.get(state)) == null) {
         throw new Error('invalid state.');
     }
-    const { [`${STATE_INTERNAL_KEY}`]: internalValue, ...newData } = value;
-    return newData;
+    return target;
 }
 
 const handlers = {
     get(target: Target, key: Key) {
         const result = Reflect.get(target, key);
-        if (key === STATE_INTERNAL_KEY) {
-            return result;
-        }
         track(target, key);
         return result;
     },
