@@ -152,14 +152,16 @@ export class Executor {
     }
 
     update() {
-        if (this.active) {
-            return this._update();
+        if (!this.active) {
+            console.error('try to update the unmounted component.');
+            return;
         }
+        this._update();
     }
 
     getter() {
         if (!this.active) {
-            return this._getter();
+            return null;
         }
         this.cleanup();
         const parent = currExecutor;
