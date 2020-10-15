@@ -152,7 +152,9 @@ export class Executor {
     }
 
     update() {
-        return this._update();
+        if (this.active) {
+            return this._update();
+        }
     }
 
     getter() {
