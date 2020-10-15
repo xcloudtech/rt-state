@@ -24,11 +24,11 @@ I need a library, with which I can use function components happily!
 
 ### Solution
 
-In rt-state, it uses `create` function to create components, which takes a `setup` callback function as its parameter. The `setup` function is used to initialize states with `state`/`stateV`/`stateArray`, or call `watch`/`link` functions, or even create any local variables and user defined functions. Then, it returns a render function. The returned `render` function is used for re-rendering the component afterwards.
+In rt-state, it uses `create` function to create components, which takes a `setup` callback function as its parameter. The `setup` function is used to initialize states with `state`/`stateS`/`stateArray`, or call `watch`/`link` functions, or even create any local variables and user defined functions. Then, it returns a render function. The returned `render` function is used for re-rendering the component afterwards.
 
 As you see, rt-state creates variables within the `closure` of `setup` callback. So, all of the variables are accessible to the `render` function. We don't have to redefine the local data or callback functions repeatedly, because the `closure` can keep the references of data or functions be the same as before. Now, you don't have to use `useCallback` or `useRef` any more. Just use the local variables and local functions directly.
 
-Next question is how and when to update the components when data changes. The solution is use `reactive` data. `reactive` means when its value changes, it will trigger an update of whatever depending on it. rt-state is able to track the dependency between data and views automatically. When the data changes, rt-state only updates those components which depend on the data. So, the data is a `reactive` version of any local or global variables. In rt-state, such kind of data can be created by `state`/`stateV`/`stateLongArray` functions.
+Next question is how and when to update the components when data changes. The solution is use `reactive` data. `reactive` means when its value changes, it will trigger an update of whatever depending on it. rt-state is able to track the dependency between data and views automatically. When the data changes, rt-state only updates those components which depend on the data. So, the data is a `reactive` version of any local or global variables. In rt-state, such kind of data can be created by `state`/`stateS`/`stateLongArray` functions.
 
 To sum up, the final solution is:
   
@@ -77,20 +77,20 @@ More examples can be found in `/src/demo`.
 
   These APIs are used to create `reactive` data.
   
-  `state` is used for watching any field value changes within an object, while, `stateV` is used for watching its own value change, commonly for primitive variables like `number` or `string`.
+  `state` is used for watching any field value changes within an object, while, `stateS` is used for watching its own value change, commonly for primitive variables like `number` or `string`.
 
   However, both are reactive only when the reference of value changes, and just watching the field values of the data, which is quite straightforward and simple.
    
-   Anyway, if you are desperate for all field values within a nested object to be reactive recursively, you can just wrap the value with another `state`/`stateV` functions. But I don't think you need it for most cases. Here is an example. 
+   Anyway, if you are desperate for all field values within a nested object to be reactive recursively, you can just wrap the value with another `state`/`stateS` functions. But I don't think you need it for most cases. Here is an example. 
    
    ```js
      const data = state({ v: state({ v: state({ v: 666 }) }) });
    ```
-   To use `state`/`stateS`/`stateV` in `React` functional component, please use `useRState`/`useRStateS`/`useRStateV`, and in order to make the `dom` reactive, you should use `rst.view` to wrap the `dom`.
+   To use `state`/`stateS` in `React` functional component, please use `useRState`/`useRStateS`, and in order to make the `dom` reactive, you should use `rst.view` to wrap the `dom`.
 
 - [state](https://github.com/duchiporexia/rt-state#create)
 
-  The variable returned by `state` is a `reactive` object, which contains several fields. Each field is reactive. For example, `data.v = 666` will trigger an update of field `v`'s dependants. WARNING: `data = newValue` will not trigger an update. So, keep in mind that only the fields are reactive, the data itself is not reactive. If you want to watch the data itself. Please use `stateV` function.
+  The variable returned by `state` is a `reactive` object, which contains several fields. Each field is reactive. For example, `data.v = 666` will trigger an update of field `v`'s dependants. WARNING: `data = newValue` will not trigger an update. So, keep in mind that only the fields are reactive, the data itself is not reactive. If you want to watch the data itself. Please use `stateS` function.
   
   Besides, the field of the field is not reactive as well. It means that `line 2` of the following code will not update its dependants. Because the reference of `data.v` is the same as before.
 
@@ -104,38 +104,33 @@ More examples can be found in `/src/demo`.
    
    Use it in React.FC, call `useRState`.
    
-- [stateS](https://github.com/duchiporexia/rt-state#createS)
+- [stateS](https://github.com/duchiporexia/rt-state#stateS)
 
-  `stateS` is  a simplified version of state. the change of its field doesn't trigger re-rendering. So, if you want to trigger a re-rendering, call `setStateS`. It will re-render all the dependants, no matter which field it depends on.
-  
-  Use it in React.FC, call `useRStateS`.
-   
-- [stateV](https://github.com/duchiporexia/rt-state#stateV)
-
-  `stateV` is just a shorthand of `state({value: anything})`. So, `stateV` returns an object which only contains one field: `value`.
+  `stateS` is just a shorthand of `state({value: anything})`. So, `stateS` returns an object which only contains one field: `value`.
   
   Here, `anything` means anything. It includes `non-object` types like `number`, `string`, or `array`. It could also be used for `object` or even another state.
 
-  `stateV` is used for watching the reference change of `anything` itself. There is no way in javascript to listen to such kind of change, so, I wrap the data into the `value` field of an object. When you want to trigger an update of `anything`'s dependants, you have to change the `value` field of the wrapped object. Here is an example.
+  `stateS` is used for watching the reference change of `anything` itself. There is no way in javascript to listen to such kind of change, so, I wrap the data into the `value` field of an object. When you want to trigger an update of `anything`'s dependants, you have to change the `value` field of the wrapped object. Here is an example.
   
   ```js
-  const data = stateV(100);
+  const data = stateS(100);
   data.value = 101; // This will trigger an update of data.value's dependants.
+  data.forceUpdate(); // This line can also trigger an update, no matter whether `value` is changed or not.
   ```
   
-  Use it in React.FC, call `useRStateV`.
+  Use it in React.FC, call `useRStateS`.
   
 - [stateLongArray](https://github.com/duchiporexia/rt-state#stateLongArray)
   
   An optimized version for long array. Don't use it unless you could understand why you need it! 
   
-  we can use `stateV` for array. For most cases, it is efficient enough. But there is a small issue. That is when you update one item value within the array, you have to create a new reference of the array by `[...oldArr]` in order to trigger an update. However, such kind of operation would trigger an update for all children of the root component. If all its children are created by `create` function. It is not bad, because `React.memo` will compare the new props with the old ones, and won't update the view if the props are not changed. But here is the problem:
+  we can use `stateS` for array. For most cases, it is efficient enough. But there is a small issue. That is when you update one item value within the array, you have to create a new reference of the array by `[...oldArr]` in order to trigger an update. However, such kind of operation would trigger an update for all children of the root component. If all its children are created by `create` function. It is not bad, because `React.memo` will compare the new props with the old ones, and won't update the view if the props are not changed. But here is the problem:
   
     * Such comparison for child component prop values will always happen, and it is not efficient if there are many children within the root component like a long array.
     
     * It becomes even worse if some components are neither created by `create` function, nor by `React.memo`/`pure` components. In these cases, such kind of components will be re-rendered from top to bottom.
     
-    So, the solution is that we can create a data structure which can only trigger an update for each item, not for the whole array at all. `stateLongArray` is implemented by two levels of data created by `stateV`. In this way, each item is able to watch the value change of its own.
+    So, the solution is that we can create a data structure which can only trigger an update for each item, not for the whole array at all. `stateLongArray` is implemented by two levels of data created by `stateS`. In this way, each item is able to watch the value change of its own.
 
 #### create APIs
 
@@ -143,7 +138,7 @@ More examples can be found in `/src/demo`.
 
   use `React.memo` by default, which means if the props of the component don't change, the component created by `create` function will not be re-rendered externally. Therefore, it's very efficient. 
   
-  Of course, the component can be controlled and updated with the data created by `state`/`stateV` function. For example, a value change of such kind of data may trigger an update of its dependants. The dependants could be components, or the callback of `watch`/`link` functions. 
+  Of course, the component can be controlled and updated with the data created by `state`/`stateS` function. For example, a value change of such kind of data may trigger an update of its dependants. The dependants could be components, or the callback of `watch`/`link` functions. 
 
 - [createS](https://github.com/duchiporexia/rt-state#createS)
 
