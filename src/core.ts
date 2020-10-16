@@ -110,10 +110,10 @@ const depsCtx = {
 };
 
 const DELAY_IN_MS = 10;
-function processDeps() {
+function asyncUpdate() {
     const now = new Date().getTime();
     if (now < depsCtx.triggerTime) {
-        depsCtx.timer = setTimeout(processDeps, DELAY_IN_MS);
+        depsCtx.timer = setTimeout(asyncUpdate, DELAY_IN_MS);
         return;
     }
     const deps = depsCtx.deps;
@@ -135,7 +135,7 @@ export function trigger(target: Target, key: Key) {
         depsCtx.triggerTime = nextTime();
 
         if (depsCtx.timer == null) {
-            depsCtx.timer = setTimeout(processDeps, DELAY_IN_MS);
+            depsCtx.timer = setTimeout(asyncUpdate, DELAY_IN_MS);
         }
     }
 }

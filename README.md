@@ -98,6 +98,7 @@ More examples can be found in `/src/demo`.
    const data = state({v: {v1: 1, v2: 2}});
    data.v.v1 = 3; // This will not trigger an update of its dependants.
    data.v = {...data.v}; // Here, it will update `data.v`'s dependants. Because the reference of data.v changes.
+   const content = extract(data); // `content` contains all fields of data.
    ```
 
    So, in this case, if you want to trigger an update, you need change the reference by `{...value}` for object, or `[...value]` for array. 
@@ -114,8 +115,8 @@ More examples can be found in `/src/demo`.
   
   ```js
   const data = stateS(100);
-  data.value = 101; // This will trigger an update of data.value's dependants.
-  data.forceUpdate(); // This line can also trigger an update, no matter whether `value` is changed or not.
+  data.value = 101; // This will trigger an update of data's dependants.
+  data.forceUpdate(); // This line can also trigger an update of data's dependants.
   ```
   
   Use it in React.FC, call `useRStateS`.

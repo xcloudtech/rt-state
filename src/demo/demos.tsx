@@ -64,7 +64,7 @@ export const ReactiveDemo = create((ctx) => {
                 <UseRStateComp />
                 <ProviderDemoComp />
                 <WatchAndBatchUpdateTestComp />
-                <TestBatchUpdateComp />
+                <ReactBuiltinBatchUpdateComp />
                 <ShowCountParent />
                 <button
                     onClick={() => {
@@ -425,7 +425,7 @@ const HookComp = create((ctx) => {
     };
 });
 // only render it once. so, it already takes advantage of react async batch rendering, which can combine multiple updates into one.
-const TestBatchUpdateComp = create((ctx) => {
+const ReactBuiltinBatchUpdateComp = create((ctx) => {
     setDebugComponentName('TestBatchUpdateComp');
     console.log(`${ctx.debugName} setup`);
     const data = stateS(100);
