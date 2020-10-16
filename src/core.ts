@@ -7,6 +7,7 @@ type ExecutorSet = Set<Executor>;
 type KeyExecutorSet = Map<Key, ExecutorSet>;
 
 const targetMap = new WeakMap<Target, KeyExecutorSet>();
+const targetToDepKeyMap = new WeakMap<Target, string>(); // used when no trigger is true.
 const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
 
@@ -43,9 +44,31 @@ export class _StateS<T> {
 export function stateS<T>(initValue?: T): StateS<T> {
     return new _StateS(initValue);
 }
+
+export function forceUpdate<T extends object>(state: State<T>) {
+    const target = extract(state);
+    const depKey = targetToDepKeyMap.get(target);
+    if (depKey == null) {
+        console.warn('state is triggered automatically. No need to call forceUpdate.');
+        return;
+    }
+    trigger(target, depKey); // trigger it manually.
+}
+
+const INTERNAL_KEY_FOR_STATE = '`.*&+%@~';
+function getDepKey<T extends Target>(initValue: T) {
+    let key = INTERNAL_KEY_FOR_STATE;
+    while (true) {
+        if (!Reflect.has(initValue, key)) {
+            return key;
+        }
+        key += INTERNAL_KEY_FOR_STATE;
+    }
+}
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
-export function state<T extends Target>(initValue: T): State<T> {
+// If `noUpdate` is true, call `forceUpdate` explicitly to trigger an update.
+export function state<T extends Target>(initValue: T, noUpdate?: boolean): State<T> {
     if (initValue == null || typeof initValue === 'number' || typeof initValue === 'string') {
         throw new Error(`initValue cannot be null, number or string.`);
     }
@@ -55,6 +78,9 @@ export function state<T extends Target>(initValue: T): State<T> {
     targetMap.set(initValue, new Map() as KeyExecutorSet);
     const proxy = getProxy(initValue, handlers);
     proxyToTargetMap.set(proxy, initValue);
+    if (noUpdate) {
+        targetToDepKeyMap.set(initValue, getDepKey(initValue));
+    }
     return proxy;
 }
 
@@ -81,7 +107,10 @@ const handlers = {
             return true;
         }
         const result = Reflect.set(target, key, value);
-        trigger(target, key);
+        const depKey = targetToDepKeyMap.get(target);
+        if (depKey == null) {
+            trigger(target, key); // trigger it automatically.
+        }
         return result;
     },
 };
@@ -92,6 +121,10 @@ export function track(target: Target, key: Key) {
         let depsMap = targetMap.get(target);
         if (!depsMap) {
             targetMap.set(target, (depsMap = new Map()));
+        }
+        const depKey = targetToDepKeyMap.get(target);
+        if (depKey != null) {
+            key = depKey;
         }
         let deps = depsMap.get(key);
         if (!deps) {
@@ -122,17 +155,12 @@ function asyncUpdate() {
     deps.forEach((e) => e.update());
 }
 
-function nextTime() {
-    const now = new Date();
-    return now.setMilliseconds(now.getMilliseconds() + DELAY_IN_MS);
-}
-
 export function trigger(target: Target, key: Key) {
     const deps = targetMap.get(target);
     const dep = deps?.get(key);
     if (dep) {
         dep.forEach((e) => depsCtx.deps.add(e));
-        depsCtx.triggerTime = nextTime();
+        depsCtx.triggerTime = new Date().getTime() + DELAY_IN_MS;
 
         if (depsCtx.timer == null) {
             depsCtx.timer = setTimeout(asyncUpdate, DELAY_IN_MS);

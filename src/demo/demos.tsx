@@ -86,6 +86,32 @@ export const ReactiveDemo = create((ctx) => {
                 <ArrComp />
                 <LongArrayComp />
                 <br />
+                <StateNoUpdateComp />
+                <br />
+            </div>
+        );
+    };
+});
+
+const StateNoUpdateComp = create((ctx) => {
+    const data = state({ v1: 1, v2: 10 }, true);
+    function noUpdate() {
+        data.v1 += 1;
+        data.v2 += 10;
+        console.log('no ui update');
+    }
+    function updateUI() {
+        data.v1 += 1;
+        rst.forceUpdate(data);
+    }
+    return (props) => {
+        return (
+            <div>
+                <button onClick={noUpdate}>noUpdate</button>
+                <button onClick={updateUI}>updateUI</button>
+                <span>
+                    v1:{data.v1},v2:{data.v2}
+                </span>
             </div>
         );
     };
