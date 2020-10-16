@@ -189,20 +189,6 @@ More examples can be found in `/src/demo`.
 
 ### Other APIs or Interfaces
 
-##### batchUpdate
-  
-  It is quite useful for optimizing the code. If there are too many reactive data changes within a user defined function call such as `onClick` function, each change would potentially trigger an update of view, or could call the `callback` function of a `watch`. For example, the following code would update the dependants of `data.v` for many times, which is not efficient.
- 
-  ```js
-    while (i < 100000) {
-        // each loop would trigger an update of the dependants.
-        data.v += i;
-        i++;
-    }
-  ```
-
-  The solution is to wrap such kind of operations within `batchUpdate` callback function. Then the dependants will be updated at the end of this function only once. As for `watch` function, if the returned values of deps are not changes, the component doesn't need to be updated at all.
-
 ##### Context
 
   `debugName`: string // for debugging

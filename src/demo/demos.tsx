@@ -11,7 +11,6 @@ import {
     createS,
     hooks,
     StateArray,
-    batchUpdate,
     createProvider,
     useRState,
     view,
@@ -64,7 +63,8 @@ export const ReactiveDemo = create((ctx) => {
                 <StateSComp />
                 <UseRStateComp />
                 <ProviderDemoComp />
-                <WatchTestComp />
+                <WatchAndBatchUpdateTestComp />
+                <TestBatchUpdateComp />
                 <ShowCountParent />
                 <button
                     onClick={() => {
@@ -81,7 +81,6 @@ export const ReactiveDemo = create((ctx) => {
                 <NestedParentComp />
                 <ShowNum data={gState} />
                 <DefaultPropsComp v1={2} />
-                <TestBatchUpdateComp />
                 <HookComp />
                 <ForceUpdateComp stateFromParent={dataForForceUpdateComp} />
                 <ArrComp />
@@ -286,14 +285,15 @@ const ProviderDemoChildComp = create((ctx) => {
 });
 //////////////////////////
 
-const WatchTestComp = create((ctx) => {
-    setDebugComponentName('WatchTestComp');
+const WatchAndBatchUpdateTestComp = create((ctx) => {
+    setDebugComponentName('WatchAndBatchUpdateTestComp');
     console.log(`${ctx.debugName} setup`);
     const data = state({ v1: 0, v2: 100 });
     let sum;
 
     watch(
         (values) => {
+            console.log('watch 1');
             const newSum = values[0];
             // console.log('newSum:', newSum);
             if (newSum !== sum) {
@@ -304,22 +304,22 @@ const WatchTestComp = create((ctx) => {
         () => [data.v1 + data.v2],
     );
 
-    const changeInBatch = () => {
-        // For batchUpdate, because the sum of (data.v1 + data.v2) is the same as before, it won't call the callback function of watch. It could be 5x faster.
-        console.log('Call change function in batch, nothing would happen.');
-        batchUpdate(() => {
-            change();
-        });
-    };
-    //If calling change directly, the sum will become 101 in the middle of the change. So, forceUpdate has been called for many times until it goes back to 100. But good news is the view is only updated once, because react has optimized it by batch-updating the view as well.
+    watch(
+        (values) => {
+            console.log('watch 2');
+        },
+        () => [data.v1, data.v2],
+    );
+
     const change = () => {
-        let i = 0;
-        while (i < 100000) {
-            data.v1 += i;
-            // Here, in the middle of the change, the sum is not 101.
-            data.v2 -= i;
+        console.log('change begin');
+        let i = 1;
+        while (i < 10000) {
+            data.v1 += 1;
+            data.v2 -= 1;
             i++;
         }
+        console.log('change done: call watch 2 only, and only once.');
     };
 
     return () => {
@@ -327,8 +327,7 @@ const WatchTestComp = create((ctx) => {
         return (
             <div>
                 {ctx.debugName}&nbsp;
-                <button onClick={change}>change(slow)</button>&nbsp;
-                <button onClick={changeInBatch}>changeInBatch(fast)</button>
+                <button onClick={change}>Watch and Batch Update</button>
                 &nbsp;sum: {sum}
             </div>
         );
