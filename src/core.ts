@@ -7,7 +7,7 @@ type ExecutorSet = Set<Executor>;
 type KeyExecutorSet = Map<Key, ExecutorSet>;
 
 const targetMap = new WeakMap<Target, KeyExecutorSet>();
-const targetToDepKeyMap = new WeakMap<Target, string>(); // used when no trigger is true.
+const targetToNoUpdateKeysMap = new WeakMap<Target, Set<Key>>(); // used when no update is true.
 const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
 
@@ -47,27 +47,21 @@ export function stateS<T>(initValue?: T): StateS<T> {
 
 export function forceUpdate<T extends object>(state: State<T>) {
     const target = extract(state);
-    const depKey = targetToDepKeyMap.get(target);
-    if (depKey == null) {
+    const noUpdateKeys = targetToNoUpdateKeysMap.get(target);
+    if (noUpdateKeys == null) {
         console.warn('state is triggered automatically. No need to call forceUpdate.');
         return;
     }
-    trigger(target, depKey); // trigger it manually.
+    targetToNoUpdateKeysMap.set(target, new Set<Key>());
+    // console.log(noUpdateKeys);
+    noUpdateKeys.forEach((key) => {
+        trigger(target, key); // trigger it manually.
+    });
 }
 
-const INTERNAL_KEY_FOR_STATE = '`.*&+%@~';
-function getDepKey<T extends Target>(initValue: T) {
-    let key = INTERNAL_KEY_FOR_STATE;
-    while (true) {
-        if (!Reflect.has(initValue, key)) {
-            return key;
-        }
-        key += INTERNAL_KEY_FOR_STATE;
-    }
-}
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
-// If `noUpdate` is true, call `forceUpdate` explicitly to trigger an update.
+// IMPORTANT: If `noUpdate` is true, call `forceUpdate` explicitly to trigger updates.
 export function state<T extends Target>(initValue: T, noUpdate?: boolean): State<T> {
     if (initValue == null || typeof initValue === 'number' || typeof initValue === 'string') {
         throw new Error(`initValue cannot be null, number or string.`);
@@ -79,7 +73,7 @@ export function state<T extends Target>(initValue: T, noUpdate?: boolean): State
     const proxy = getProxy(initValue, handlers);
     proxyToTargetMap.set(proxy, initValue);
     if (noUpdate) {
-        targetToDepKeyMap.set(initValue, getDepKey(initValue));
+        targetToNoUpdateKeysMap.set(initValue, new Set<string>());
     }
     return proxy;
 }
@@ -107,9 +101,11 @@ const handlers = {
             return true;
         }
         const result = Reflect.set(target, key, value);
-        const depKey = targetToDepKeyMap.get(target);
-        if (depKey == null) {
+        const noUpdateKeys = targetToNoUpdateKeysMap.get(target);
+        if (noUpdateKeys == null) {
             trigger(target, key); // trigger it automatically.
+        } else {
+            noUpdateKeys.add(key);
         }
         return result;
     },
@@ -121,10 +117,6 @@ export function track(target: Target, key: Key) {
         let depsMap = targetMap.get(target);
         if (!depsMap) {
             targetMap.set(target, (depsMap = new Map()));
-        }
-        const depKey = targetToDepKeyMap.get(target);
-        if (depKey != null) {
-            key = depKey;
         }
         let deps = depsMap.get(key);
         if (!deps) {
