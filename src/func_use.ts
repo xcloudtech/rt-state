@@ -8,8 +8,8 @@ export function useRStateS<T>(initValue?: T): StateS<T> {
     return useMemo(() => stateS(initValue), []);
 }
 
-export function useRState<T extends Target>(initValue: T, noUpdate?: boolean): T {
-    return useMemo(() => state(initValue, noUpdate), []);
+export function useRState<T extends Target>(initValue: T): T {
+    return useMemo(() => state(initValue), []);
 }
 
 export function useRStateArray<T>(initValues?: T[]): StateArray<T> {

@@ -1,13 +1,13 @@
 import { State, StateS } from './model';
 import { getProxy } from './proxy';
-import { Target } from './common';
+import { isObj, Target } from './common';
+import { batchedUpdates } from './batch_update';
 
 type Key = string | number;
 type ExecutorSet = Set<Executor>;
 type KeyExecutorSet = Map<Key, ExecutorSet>;
 
 const targetMap = new WeakMap<Target, KeyExecutorSet>();
-const targetToNoUpdateKeysMap = new WeakMap<Target, Set<Key>>(); // used when no update is true.
 const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
 
@@ -45,26 +45,28 @@ export function stateS<T>(initValue?: T): StateS<T> {
     return new _StateS(initValue);
 }
 
-export function forceUpdate<T extends object>(state: State<T>) {
-    const target = extract(state);
-    const noUpdateKeys = targetToNoUpdateKeysMap.get(target);
-    if (noUpdateKeys == null) {
-        console.warn('state is triggered automatically. No need to call forceUpdate.');
-        return;
+export function setState<T extends object>(state: State<T>, value: T) {
+    if (!isObj(value)) {
+        throw new Error(`value should be an object.`);
     }
-    targetToNoUpdateKeysMap.set(target, new Set<Key>());
-    // console.log(noUpdateKeys);
-    noUpdateKeys.forEach((key) => {
-        trigger(target, key); // trigger it manually.
+    value = value ?? ({} as T);
+    const target = extract(state);
+    Object.keys(target).forEach((key) => {
+        state[key] = Reflect.get(value, key);
+    });
+    //
+    Object.keys(value).forEach((key) => {
+        if (!Reflect.has(target, key)) {
+            console.error(`Cannot add property ${key}, object is not extensible`);
+        }
     });
 }
 
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
-// IMPORTANT: If `noUpdate` is true, call `forceUpdate` explicitly to trigger updates.
-export function state<T extends Target>(initValue: T, noUpdate?: boolean): State<T> {
-    if (initValue == null || typeof initValue === 'number' || typeof initValue === 'string') {
-        throw new Error(`initValue cannot be null, number or string.`);
+export function state<T extends Target>(initValue: T): State<T> {
+    if (initValue == null || !isObj(initValue)) {
+        throw new Error(`initValue should be an object and should not be null.`);
     }
     if (targetMap.has(initValue)) {
         throw new Error('can not call state function twice for the same obj.');
@@ -72,9 +74,6 @@ export function state<T extends Target>(initValue: T, noUpdate?: boolean): State
     targetMap.set(initValue, new Map() as KeyExecutorSet);
     const proxy = getProxy(initValue, handlers);
     proxyToTargetMap.set(proxy, initValue);
-    if (noUpdate) {
-        targetToNoUpdateKeysMap.set(initValue, new Set<string>());
-    }
     return proxy;
 }
 
@@ -94,19 +93,15 @@ const handlers = {
     },
     set(target: Target, key: Key, value: any) {
         if (!Reflect.has(target, key)) {
-            throw new Error(`Cannot add property ${key}, object is not extensible`);
+            console.error(`Cannot add property ${key}, object is not extensible`);
+            return true;
         }
         const oldValue = Reflect.get(target, key);
         if (value === oldValue) {
             return true;
         }
         const result = Reflect.set(target, key, value);
-        const noUpdateKeys = targetToNoUpdateKeysMap.get(target);
-        if (noUpdateKeys == null) {
-            trigger(target, key); // trigger it automatically.
-        } else {
-            noUpdateKeys.add(key);
-        }
+        trigger(target, key);
         return result;
     },
 };
@@ -144,7 +139,9 @@ function asyncUpdate() {
     const deps = depsCtx.deps;
     depsCtx.deps = new Set<Executor>();
     depsCtx.timer = null;
-    deps.forEach((e) => e.update());
+    batchedUpdates(() => {
+        deps.forEach((e) => e.update());
+    });
 }
 
 export function trigger(target: Target, key: Key) {

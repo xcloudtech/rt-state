@@ -86,32 +86,39 @@ export const ReactiveDemo = create((ctx) => {
                 <ArrComp />
                 <LongArrayComp />
                 <br />
-                <StateNoUpdateComp />
+                <SetStateComp />
                 <br />
             </div>
         );
     };
 });
 
-const StateNoUpdateComp = create((ctx) => {
-    const data = state({ v1: 1, v2: 10 }, true);
-    function noUpdate() {
+const SetStateComp = create((ctx) => {
+    setDebugComponentName('SetStateComp');
+    console.log(`${ctx.debugName} setup`);
+    const data = state({ v1: 1, v2: 10 });
+    function add() {
         data.v1 += 1;
-        data.v2 += 10;
-        console.log('no ui update');
+        data.v2 = (data.v2 ?? 0) + 10;
     }
-    function updateUI() {
-        data.v1 += 1;
-        rst.forceUpdate(data);
+    function setState() {
+        rst.setState(data, { v1: data.v1 + 1000 } as any); // any is just for testing, remove any for prod.
+    }
+    function setStateError() {
+        rst.setState(data, { v1: data.v1 + 1000, v3: 22 } as any); // remove any for prod.
     }
     return (props) => {
+        console.log(`${ctx.debugName} render`);
         return (
             <div>
-                <button onClick={noUpdate}>noUpdate</button>
-                <button onClick={updateUI}>updateUI</button>
-                <span>
-                    v1:{data.v1},v2:{data.v2}
-                </span>
+                <button onClick={add}>add</button>
+                <button onClick={setState}>setState</button>
+                <button onClick={setStateError}>setStateError</button>
+                {rst.view(() => (
+                    <span>
+                        v1:{data.v1}, v2:{data.v2 ?? 0}
+                    </span>
+                ))}
             </div>
         );
     };
@@ -137,7 +144,7 @@ const StateSComp = create((ctx) => {
 
     return (props) => {
         const { value: data } = state;
-        console.log(`StateSComp render: ${data.v1} ${data.v2}`);
+        console.log(`${ctx.debugName} render: ${data.v1} ${data.v2}`);
         return (
             <div>
                 v1: {data.v1}&nbsp;v2:{data.v2}
