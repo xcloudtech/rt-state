@@ -142,12 +142,17 @@ const StateSComp = create((ctx) => {
         // state.value['ddd'] = 3;
     };
 
+    function render() {
+        return <div>no update for extract:{JSON.stringify(state.extract())}</div>;
+    }
+
     return (props) => {
         const { value: data } = state;
         console.log(`${ctx.debugName} render: ${data.v1} ${data.v2}`);
         return (
             <div>
                 v1: {data.v1}&nbsp;v2:{data.v2}
+                {rst.view(render)}
                 <button onClick={addByForceUpdate}>addByForceUpdate</button>
                 <button onClick={justAdd}>justAdd</button>
             </div>

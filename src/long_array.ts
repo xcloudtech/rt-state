@@ -9,6 +9,7 @@ export function stateArray<T>(initValues: T[]): StateArray<T> {
 export interface StateArray<T> {
     values: T[];
     forceUpdate(): void;
+    extract(): T[];
     readonly length: number;
     get(idx: number): T;
     set(idx: number, value: T);
@@ -19,6 +20,7 @@ export interface StateArray<T> {
     splice(start: number, deleteCount: number, ...values: T[]);
 
     readonly items: StateArrayItem<T>[];
+    extractItems(): StateArrayItem<T>[];
     getItem(idx: number): StateArrayItem<T>;
     setItem(idx: number, item: StateArrayItem<T>);
     filterItems(filter: (item: StateArrayItem<T>, index: number) => boolean): StateArray<T>;
@@ -44,6 +46,10 @@ class _StateArray<T> {
     }
     forceUpdate() {
         this._state.forceUpdate();
+    }
+    extract(): T[] {
+        const items = this.extractItems();
+        return items?.map((d) => d?.extract());
     }
     get length() {
         return this._state.value.length;
@@ -81,6 +87,9 @@ class _StateArray<T> {
 
     get items(): StateArrayItem<T>[] {
         return this._state.value;
+    }
+    extractItems(): StateArrayItem<T>[] {
+        return this._state.extract();
     }
     getItem(idx: number): StateArrayItem<T> {
         return this._state.value[idx];
@@ -132,6 +141,9 @@ class _StateArrayItem<T> {
     }
     forceUpdate() {
         this._state.forceUpdate();
+    }
+    extract() {
+        return this._state.extract();
     }
     get key() {
         return this._key;

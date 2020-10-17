@@ -26,6 +26,10 @@ export class _StateS<T> {
         return this._value;
     }
 
+    extract() {
+        return this._value;
+    }
+
     set value(val) {
         const oldValue = this._value;
         this._value = val;
@@ -77,6 +81,7 @@ export function state<T extends Target>(initValue: T): State<T> {
     return proxy;
 }
 
+// extract the data without creating a dependency.
 export function extract<T>(state: State<T>): T {
     let target;
     if (state == null || (target = proxyToTargetMap.get(state)) == null) {

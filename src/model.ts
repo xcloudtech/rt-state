@@ -4,6 +4,7 @@ export type State<T> = T;
 
 export interface StateS<T> {
     value: T;
+    extract(): T; // extract the data without creating a dependency.
     forceUpdate(): void;
 }
 
