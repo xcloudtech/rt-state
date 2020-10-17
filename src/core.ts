@@ -1,7 +1,7 @@
 import { State, StateS } from './model';
 import { getProxy } from './proxy';
 import { isObj, Target } from './common';
-import { batchedUpdates } from './batch_update';
+import { batchUpdate } from './batch_update';
 
 type Key = string | number;
 type ExecutorSet = Set<Executor>;
@@ -139,7 +139,7 @@ function asyncUpdate() {
     const deps = depsCtx.deps;
     depsCtx.deps = new Set<Executor>();
     depsCtx.timer = null;
-    batchedUpdates(() => {
+    batchUpdate(function () {
         deps.forEach((e) => e.update());
     });
 }
@@ -148,7 +148,10 @@ export function trigger(target: Target, key: Key) {
     const deps = targetMap.get(target);
     const dep = deps?.get(key);
     if (dep) {
-        dep.forEach((e) => depsCtx.deps.add(e));
+        dep.forEach((e) => {
+            e._dirty = true;
+            depsCtx.deps.add(e);
+        });
         depsCtx.triggerTime = new Date().getTime() + DELAY_IN_MS;
 
         if (depsCtx.timer == null) {
@@ -167,6 +170,7 @@ export class Executor {
     private readonly _getter: () => any;
     private readonly _update: () => void;
     deps?: Set<ExecutorSet>;
+    _dirty: boolean;
 
     constructor(getter: () => any, update: () => void, type: string) {
         this.debugName = `${type}_${Executor.GlobalId++}`;
@@ -174,13 +178,16 @@ export class Executor {
         this.active = true;
         this._getter = getter;
         this._update = update;
+        this._dirty = false;
     }
 
     update() {
         if (!this.active) {
             return;
         }
-        this._update();
+        if (this._dirty) {
+            this._update();
+        }
     }
 
     getter() {
