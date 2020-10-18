@@ -21,7 +21,6 @@ import {
     extract,
     StateS,
     StateLink,
-    batchUpdate,
 } from '../';
 
 const delay = (ms: number) => {
@@ -65,7 +64,6 @@ export const ReactiveDemo = create((ctx) => {
                 <UseRStateComp />
                 <ProviderDemoComp />
                 <WatchAndBatchUpdateTestComp />
-                <BatchUpdateForWatchComp />
                 <ReactBuiltinBatchUpdateComp />
                 <ShowCountParent />
                 <button
@@ -324,45 +322,6 @@ const ProviderDemoChildComp = create((ctx) => {
     };
 });
 //////////////////////////
-const BatchUpdateForWatchComp = create((ctx) => {
-    setDebugComponentName('WatchAndBatchUpdateTestComp');
-    console.log(`${ctx.debugName} setup`);
-    const data = state({ v1: 0, v2: 100 });
-    let sum;
-
-    watch(
-        (values) => {
-            console.log('watch v1 and v2');
-            ctx.forceUpdate();
-        },
-        () => [data.v1, data.v2],
-    );
-
-    const changeInBatch = () => {
-        console.log('watch is called only once.');
-        batchUpdate(() => {
-            change();
-        });
-    };
-    const change = () => {
-        data.v1 += 1;
-        data.v1 += 1;
-        data.v2 -= 1;
-        data.v2 += 1;
-    };
-
-    return () => {
-        console.log(`${ctx.debugName} render`);
-        return (
-            <div>
-                {ctx.debugName}&nbsp;
-                <button onClick={change}>change</button>
-                <button onClick={changeInBatch}>changeInBatch</button>
-                &nbsp;sum: {sum}
-            </div>
-        );
-    };
-});
 
 const WatchAndBatchUpdateTestComp = create((ctx) => {
     setDebugComponentName('WatchAndBatchUpdateTestComp');
@@ -372,6 +331,7 @@ const WatchAndBatchUpdateTestComp = create((ctx) => {
 
     watch(
         (values) => {
+            console.log('watch 1');
             const newSum = values[0];
             // console.log('newSum:', newSum);
             if (newSum !== sum) {
@@ -382,21 +342,22 @@ const WatchAndBatchUpdateTestComp = create((ctx) => {
         () => [data.v1 + data.v2],
     );
 
-    const changeInBatch = () => {
-        // For batchUpdate, because the sum of (data.v1 + data.v2) is the same as before, it won't call the callback function of watch. It could be 5x faster.
-        console.log('Call change function in batch, nothing would happen.');
-        batchUpdate(() => {
-            change();
-        });
-    };
-    //If calling change directly, the sum will become 101 in the middle of the change. So, forceUpdate has been called for many times until it goes back to 100. But good news is the view is only updated once, because react has optimized it by batch-updating the view as well.
+    watch(
+        (values) => {
+            console.log('watch 2');
+        },
+        () => [data.v1, data.v2],
+    );
+
     const change = () => {
+        console.log('change begin');
         let i = 1;
-        while (i < 100000) {
+        while (i < 10000) {
             data.v1 += 1;
             data.v2 -= 1;
             i++;
         }
+        console.log('change done: call watch 2 only, and only once.');
     };
 
     return () => {
@@ -404,8 +365,7 @@ const WatchAndBatchUpdateTestComp = create((ctx) => {
         return (
             <div>
                 {ctx.debugName}&nbsp;
-                <button onClick={change}>change(slow), will render once</button>
-                <button onClick={changeInBatch}>changeInBatch(fast)</button>
+                <button onClick={change}>Watch and Batch Update</button>
                 &nbsp;sum: {sum}
             </div>
         );
