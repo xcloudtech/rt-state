@@ -154,6 +154,7 @@ export function trigger(target: Target, key: Key) {
     const dep = deps?.get(key);
     if (dep) {
         dep.forEach((e) => {
+            e._dirty = true;
             depsCtx.deps.add(e);
         });
         depsCtx.triggerTime = new Date().getTime() + DELAY_IN_MS;
@@ -174,6 +175,7 @@ export class Executor {
     private readonly _getter: () => any;
     private readonly _update: () => void;
     deps?: Set<ExecutorSet>;
+    _dirty: boolean;
 
     constructor(getter: () => any, update: () => void, type: string) {
         this.debugName = `${type}_${Executor.GlobalId++}`;
@@ -181,13 +183,16 @@ export class Executor {
         this.active = true;
         this._getter = getter;
         this._update = update;
+        this._dirty = false;
     }
 
     update() {
         if (!this.active) {
             return;
         }
-        this._update();
+        if (this._dirty) {
+            this._update();
+        }
     }
 
     getter() {
