@@ -21,6 +21,7 @@ import {
     extract,
     StateS,
     StateLink,
+    unstable_disableDelay,
 } from '../';
 
 const delay = (ms: number) => {
@@ -360,12 +361,26 @@ const WatchAndBatchUpdateTestComp = create((ctx) => {
         console.log('change done: call watch 2 only, and only once.');
     };
 
+    const changeDisableDelay = () => {
+        console.log('changeDisableDelay begin');
+        let i = 1;
+        while (i < 10) {
+            unstable_disableDelay(() => {
+                data.v1 += 1;
+                data.v2 -= 1;
+            });
+            i++;
+        }
+        console.log('changeDisableDelay done.');
+    };
+
     return () => {
         console.log(`${ctx.debugName} render`);
         return (
             <div>
                 {ctx.debugName}&nbsp;
                 <button onClick={change}>Watch and Batch Update</button>
+                <button onClick={changeDisableDelay}>changeDisableDelay</button>
                 &nbsp;sum: {sum}
             </div>
         );

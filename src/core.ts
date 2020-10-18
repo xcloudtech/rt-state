@@ -134,6 +134,15 @@ const depsCtx = {
     deps: new Set<Executor>(),
 };
 
+let DISABLE_DELAY = false;
+
+export function unstable_disableDelay(cb: () => void) {
+    const old = DISABLE_DELAY;
+    DISABLE_DELAY = true;
+    cb();
+    DISABLE_DELAY = old;
+}
+
 const DELAY_IN_MS = 10;
 function asyncUpdate() {
     const now = new Date().getTime();
@@ -157,6 +166,11 @@ export function trigger(target: Target, key: Key) {
             e._dirty = true;
             depsCtx.deps.add(e);
         });
+        if (DISABLE_DELAY) {
+            depsCtx.triggerTime = 0;
+            asyncUpdate();
+            return;
+        }
         depsCtx.triggerTime = new Date().getTime() + DELAY_IN_MS;
 
         if (depsCtx.timer == null) {
