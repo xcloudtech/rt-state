@@ -57,9 +57,6 @@ export function create<T>(setup: (ctx: Context<T>) => RFC<T>, config?: CreateCon
         if (ctx._isInSetup) {
             ctx._isInSetup = false;
         }
-        if (executor._dirty) {
-            executor._dirty = false;
-        }
         const dom = executor.getter();
         ctxContainer.currCtx = null;
         return dom;
