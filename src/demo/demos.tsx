@@ -351,6 +351,27 @@ const BatchUpdateForWatchComp = create((ctx) => {
         data.v2 += 1;
     };
 
+    const embeddedBatch = () => {
+        batchUpdate(() => {
+            data.v1 += 1;
+            batchUpdate(() => {
+                data.v2 += 1;
+                data.v1 += 1;
+                batchUpdate(() => {
+                    data.v1 += 1;
+                });
+                data.v2 += 1;
+            });
+            data.v2 += 1;
+            batchUpdate(() => {
+                data.v1 += 1;
+                data.v2 += 1;
+            });
+            data.v1 += 1;
+            data.v2 += 1;
+        });
+    };
+
     return () => {
         console.log(`${ctx.debugName} render`);
         return (
@@ -358,7 +379,8 @@ const BatchUpdateForWatchComp = create((ctx) => {
                 {ctx.debugName}&nbsp;
                 <button onClick={change}>change</button>
                 <button onClick={changeInBatch}>changeInBatch</button>
-                &nbsp;sum: {sum}
+                <button onClick={embeddedBatch}>embeddedBatch</button>
+                &nbsp;sum: {sum}, v1: {data.v1} v2: {data.v2}
             </div>
         );
     };
