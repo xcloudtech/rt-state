@@ -9,6 +9,7 @@ type KeyExecutorSet = Map<Key, ExecutorSet>;
 const targetMap = new WeakMap<Target, KeyExecutorSet>();
 const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
+let depSetForBatchUpdate: Set<Executor> = null;
 
 export class _StateS<T> {
     private _value: T;
@@ -54,10 +55,8 @@ export function setState<T extends object>(state: State<T>, value: T) {
     }
     value = value ?? ({} as T);
     const target = extract(state);
-    batchUpdate(() => {
-        Object.keys(target).forEach((key) => {
-            state[key] = Reflect.get(value, key);
-        });
+    Object.keys(target).forEach((key) => {
+        state[key] = Reflect.get(value, key);
     });
     //
     Object.keys(value).forEach((key) => {
@@ -112,22 +111,18 @@ const handlers = {
     },
 };
 
-let curBatchDepSet: Set<Executor> = null;
-
 export function batchUpdate(cb: () => void) {
     if (currExecutor) {
         throw new Error('It can only be used within the Callback function of an event, like click event.');
     }
-    const isRoot = curBatchDepSet == null;
-    if (isRoot) {
-        curBatchDepSet = new Set<Executor>();
+    if (depSetForBatchUpdate != null) {
+        throw new Error('recursively call "batchUpdate", wrong!');
     }
+    depSetForBatchUpdate = new Set<Executor>();
     cb();
-    if (isRoot) {
-        const deps = curBatchDepSet;
-        curBatchDepSet = null;
-        deps.forEach((e) => e.update());
-    }
+    const deps = depSetForBatchUpdate;
+    depSetForBatchUpdate = null;
+    deps.forEach((e) => e.update());
 }
 
 export function track(target: Target, key: Key) {
@@ -152,9 +147,9 @@ export function trigger(target: Target, key: Key) {
     const deps = targetMap.get(target);
     const dep = deps?.get(key);
     if (dep) {
-        if (curBatchDepSet != null) {
+        if (depSetForBatchUpdate != null) {
             // in batchChange
-            dep.forEach((e) => curBatchDepSet.add(e));
+            dep.forEach((e) => depSetForBatchUpdate.add(e));
         } else {
             Array.from(dep).forEach((e) => e.update());
         }
