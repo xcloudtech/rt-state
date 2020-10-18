@@ -1,7 +1,6 @@
 import { State, StateS } from './model';
 import { getProxy } from './proxy';
 import { isObj, Target } from './common';
-import { batchUpdate } from './batch_update';
 
 type Key = string | number;
 type ExecutorSet = Set<Executor>;
@@ -10,6 +9,7 @@ type KeyExecutorSet = Map<Key, ExecutorSet>;
 const targetMap = new WeakMap<Target, KeyExecutorSet>();
 const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
+let depSetForBatchUpdate: Set<Executor> = null;
 
 export class _StateS<T> {
     private _value: T;
@@ -111,6 +111,20 @@ const handlers = {
     },
 };
 
+export function batchUpdate(cb: () => void) {
+    if (currExecutor) {
+        throw new Error('It can only be used within the Callback function of an event, like click event.');
+    }
+    if (depSetForBatchUpdate != null) {
+        throw new Error('recursively call "batchUpdate", wrong!');
+    }
+    depSetForBatchUpdate = new Set<Executor>();
+    cb();
+    const deps = depSetForBatchUpdate;
+    depSetForBatchUpdate = null;
+    deps.forEach((e) => e.update());
+}
+
 export function track(target: Target, key: Key) {
     const executor = currExecutor;
     if (executor) {
@@ -128,38 +142,16 @@ export function track(target: Target, key: Key) {
         }
     }
 }
-const depsCtx = {
-    timer: null,
-    triggerTime: null,
-    deps: new Set<Executor>(),
-};
-
-const DELAY_IN_MS = 10;
-function asyncUpdate() {
-    const now = new Date().getTime();
-    if (now < depsCtx.triggerTime) {
-        depsCtx.timer = setTimeout(asyncUpdate, DELAY_IN_MS);
-        return;
-    }
-    const deps = depsCtx.deps;
-    depsCtx.deps = new Set<Executor>();
-    depsCtx.timer = null;
-    batchUpdate(function () {
-        deps.forEach((e) => e.update());
-    });
-}
 
 export function trigger(target: Target, key: Key) {
     const deps = targetMap.get(target);
     const dep = deps?.get(key);
     if (dep) {
-        dep.forEach((e) => {
-            depsCtx.deps.add(e);
-        });
-        depsCtx.triggerTime = new Date().getTime() + DELAY_IN_MS;
-
-        if (depsCtx.timer == null) {
-            depsCtx.timer = setTimeout(asyncUpdate, DELAY_IN_MS);
+        if (depSetForBatchUpdate != null) {
+            // in batchChange
+            dep.forEach((e) => depSetForBatchUpdate.add(e));
+        } else {
+            Array.from(dep).forEach((e) => e.update());
         }
     }
 }
