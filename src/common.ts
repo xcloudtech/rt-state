@@ -33,3 +33,42 @@ export const notEqual = (a, b) => {
 
 export const isObj = (x: any): boolean => typeof x === 'object';
 export const isFn = (x: any): boolean => typeof x === 'function';
+
+const includeNonEnumerable = false;
+
+export function deepClone(item) {
+    if (item === null || typeof item !== 'object') {
+        return item;
+    }
+    if (item instanceof Date) {
+        return new Date(item.valueOf());
+    }
+    if (item instanceof Array) {
+        const copy = [];
+        item.forEach((_, i) => (copy[i] = deepClone(item[i])));
+        return copy;
+    }
+    if (item instanceof Set) {
+        const copy = new Set();
+        item.forEach((v) => copy.add(deepClone(v)));
+        return copy;
+    }
+    if (item instanceof Map) {
+        const copy = new Map();
+        item.forEach((v, k) => copy.set(k, deepClone(v)));
+        return copy;
+    }
+    if (item instanceof Object) {
+        const copy = {};
+        // * Object.symbol
+        Object.getOwnPropertySymbols(item).forEach((s) => (copy[s] = deepClone(item[s])));
+        // * Object.name (other)
+        if (includeNonEnumerable) {
+            Object.getOwnPropertyNames(item).forEach((k) => (copy[k] = deepClone(item[k])));
+        } else {
+            Object.keys(item).forEach((k) => (copy[k] = deepClone(item[k])));
+        }
+        return copy;
+    }
+    throw new Error(`Unable to copy object: ${item}`);
+}

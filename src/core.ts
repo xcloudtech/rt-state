@@ -1,6 +1,6 @@
 import { State, StateS } from './model';
 import { getProxy } from './proxy';
-import { isObj, Target } from './common';
+import { deepClone, isObj, Target } from './common';
 import { batchUpdate } from './batch_update';
 
 type Key = string | number;
@@ -69,12 +69,10 @@ export function setState<T extends object>(state: State<T>, value: T) {
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
 export function state<T extends Target>(initValue: T): State<T> {
-    if (initValue == null || !isObj(initValue)) {
+    if (initValue == null || !isObj(initValue) || Array.isArray(initValue)) {
         throw new Error(`initValue should be an object and should not be null.`);
     }
-    if (targetMap.has(initValue)) {
-        throw new Error('can not call state function twice for the same obj.');
-    }
+    initValue = deepClone(initValue);
     targetMap.set(initValue, new Map() as KeyExecutorSet);
     const proxy = getProxy(initValue, handlers);
     proxyToTargetMap.set(proxy, initValue);
