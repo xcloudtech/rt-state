@@ -49,15 +49,15 @@ export function stateS<T>(initValue?: T): StateS<T> {
     return new _StateS(initValue);
 }
 
-export function setState<T extends object>(state: State<T>, value: T, clone?: boolean) {
-    if (!isObj(value)) {
+export function setState<T extends object>(state: State<T>, value: T, cloneFields?: boolean) {
+    if (!isObj(value) || Array.isArray(value)) {
         throw new Error(`value should be an object.`);
     }
     value = value ?? ({} as T);
     const target = extract(state);
     Object.keys(target).forEach((key) => {
         const fieldValue = Reflect.get(value, key);
-        state[key] = clone ? deepClone(fieldValue) : fieldValue;
+        state[key] = cloneFields ? deepClone(fieldValue) : fieldValue;
     });
     //
     Object.keys(value).forEach((key) => {
