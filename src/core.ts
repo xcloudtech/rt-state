@@ -49,14 +49,15 @@ export function stateS<T>(initValue?: T): StateS<T> {
     return new _StateS(initValue);
 }
 
-export function setState<T extends object>(state: State<T>, value: T) {
+export function setState<T extends object>(state: State<T>, value: T, clone?: boolean) {
     if (!isObj(value)) {
         throw new Error(`value should be an object.`);
     }
     value = value ?? ({} as T);
     const target = extract(state);
     Object.keys(target).forEach((key) => {
-        state[key] = Reflect.get(value, key);
+        const fieldValue = Reflect.get(value, key);
+        state[key] = clone ? deepClone(fieldValue) : fieldValue;
     });
     //
     Object.keys(value).forEach((key) => {
@@ -68,11 +69,13 @@ export function setState<T extends object>(state: State<T>, value: T) {
 
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
-export function state<T extends Target>(initValue: T): State<T> {
+export function state<T extends Target>(initValue: T, clone?: boolean): State<T> {
     if (initValue == null || !isObj(initValue) || Array.isArray(initValue)) {
         throw new Error(`initValue should be an object and should not be null.`);
     }
-    initValue = deepClone(initValue);
+    if (clone) {
+        initValue = deepClone(initValue);
+    }
     targetMap.set(initValue, new Map() as KeyExecutorSet);
     const proxy = getProxy(initValue, handlers);
     proxyToTargetMap.set(proxy, initValue);
