@@ -11,7 +11,7 @@ const targetMap = new WeakMap<Target, KeyExecutorSet>();
 const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
 
-export class _StateS<T> {
+class _StateS<T> {
     private _value: T;
     private _state: State<{ value: number }>;
 
