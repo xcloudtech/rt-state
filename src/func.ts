@@ -82,18 +82,6 @@ export function hooks<T>(cb: () => T): HooksRef<T> {
     return currCtx.hooksRef;
 }
 
-export function _checkAndPush<P>(provider: Provider<P, any>) {
-    const currCtx = ctxContainer.currCtx;
-    if (currCtx?._isInSetup) {
-        if (currCtx._hooksCb != null) {
-            throw new Error('"Provider.use()" can only be used before "hooks" if it\'s in setup function.');
-        }
-        currCtx._providers = currCtx._providers ?? [];
-        currCtx._providers.push(provider);
-        return;
-    }
-}
-
 export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateLink<T> {
     const linkId = {};
     let value: T;
@@ -157,8 +145,10 @@ function watchWithOption(
 
     const executor = new Executor(getter, update, 'watcher');
 
-    if (ctxContainer.unWatchersInProviderSetup != null) {
-        ctxContainer.unWatchersInProviderSetup.push(() => executor.unwatch());
+    const { currProviderSetupCtx } = ctxContainer;
+    if (currProviderSetupCtx != null) {
+        // in Provider setup callback function.
+        currProviderSetupCtx.unWatchers.push(() => executor.unwatch());
     } else if (!isGlobal) {
         // If it is not a global watcher nor in provider setup.
         const currCtx = ctxContainer.currCtx;

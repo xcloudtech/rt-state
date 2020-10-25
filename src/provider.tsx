@@ -1,29 +1,35 @@
 import * as React from 'react';
-import { Context, useEffect, useMemo, useRef } from 'react';
-import { _checkAndPush } from './func';
+import { Context, useEffect, useMemo } from 'react';
 import { Provider } from './model';
 import { ctxContainer } from './context';
+import { ProviderSetupContext } from './common';
 
 export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I> {
     const Context = React.createContext<T>(null);
 
     function _Provider(props) {
         const { initValue } = props;
-        const unWatchersRef = useRef<any[]>(null);
-        const value = useMemo(() => {
-            ctxContainer.unWatchersInProviderSetup = [];
-            const val = setup(initValue);
-            unWatchersRef.current = ctxContainer.unWatchersInProviderSetup;
-            ctxContainer.unWatchersInProviderSetup = null;
-            return val;
+        const ctx = useMemo<ProviderSetupContext>(() => {
+            return { _isInSetup: true, value: null, unWatchers: [] };
         }, []);
+        if (ctx._isInSetup) {
+            ctxContainer.currProviderSetupCtx = ctx;
+            ctx.value = setup(initValue);
+            ctx._isInSetup = false;
+            ctxContainer.currProviderSetupCtx = null;
+        } else {
+            ctx._providers?.forEach((p) => {
+                p.use();
+            });
+        }
         useEffect(() => {
             return () => {
-                unWatchersRef.current.forEach((cb) => {
+                ctx.unWatchers.forEach((cb) => {
                     cb();
                 });
             };
         }, []);
+        const { value } = ctx;
         return <Context.Provider value={value}>{props.children}</Context.Provider>;
     }
 
@@ -40,6 +46,24 @@ export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I>
     const provider = { use, init, _Provider, Context };
 
     return { ...provider, initValue: null } as Provider<T, I>;
+}
+
+function _checkAndPush<P>(provider: Provider<P, any>) {
+    const currCtx = ctxContainer.currCtx;
+    if (currCtx?._isInSetup) {
+        if (currCtx._hooksCb != null) {
+            throw new Error('"Provider.use()" can only be used before "hooks" if it\'s in setup function.');
+        }
+        currCtx._providers = currCtx._providers ?? [];
+        currCtx._providers.push(provider);
+        return;
+    }
+    const currProviderCtx = ctxContainer.currProviderSetupCtx;
+    if (currProviderCtx?._isInSetup) {
+        currProviderCtx._providers = currProviderCtx._providers ?? [];
+        currProviderCtx._providers.push(provider);
+        return;
+    }
 }
 
 export function _provide<T>(providers: Provider<any, any>[], Comp: React.FC<T>): React.FC<T> {

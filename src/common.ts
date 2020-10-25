@@ -1,7 +1,16 @@
+import { Provider } from './model';
+
 export type Target = object;
 
 export interface HooksRef<T> {
     current: T;
+}
+
+export interface ProviderSetupContext {
+    _isInSetup: boolean;
+    _providers?: Provider<any, any>[];
+    unWatchers: any[];
+    value: any;
 }
 
 type RequiredKeys<T> = {

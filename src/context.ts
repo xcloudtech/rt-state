@@ -1,6 +1,6 @@
 import { Provider, StateS } from './model';
 import { Executor, stateS } from './core';
-import { DefaultProps, HooksRef } from './common';
+import { DefaultProps, HooksRef, ProviderSetupContext } from './common';
 
 // Context can be used in any functions within the setup function.
 export class _Context<T> {
@@ -83,5 +83,5 @@ export class _Context<T> {
 
 export const ctxContainer: {
     currCtx: _Context<any>;
-    unWatchersInProviderSetup: (() => void)[];
-} = { currCtx: null, unWatchersInProviderSetup: null };
+    currProviderSetupCtx: ProviderSetupContext;
+} = { currCtx: null, currProviderSetupCtx: null };

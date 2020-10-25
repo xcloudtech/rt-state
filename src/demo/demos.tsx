@@ -243,6 +243,10 @@ const ProviderX = createProvider((initValue: number) => {
     const add = () => x.value++;
     return { x, add };
 });
+const ProviderXX = createProvider(() => {
+    const providerX = ProviderX.use();
+    return { xState: providerX.x };
+});
 const ProviderV = createProvider(() => {
     const x = stateS(200);
     const add = () => x.value++;
@@ -255,9 +259,8 @@ const ProviderDemoComp = createS(
         return (
             <>
                 <button onClick={() => setstate(state + 1)}> add one </button>
-                {state % 5 === 0 ? null : <ProviderDemoParentComp />}
-
                 <ProviderDemoParentComp />
+                {state % 5 === 0 ? null : <ProviderDemoParentComp />}
             </>
         );
     },
@@ -285,11 +288,26 @@ const ProviderDemoParentComp = createS(
     { providers: [ProviderX.init(999999), ProviderV] },
 );
 
+const ProviderXXComp = create<{ v: number }>(
+    (ctx) => {
+        const provider = ProviderXX.use();
+        return (props) => {
+            return (
+                <div>
+                    xx: {provider.xState.value} v: {props.v}(used to update ProviderXXComp)
+                </div>
+            );
+        };
+    },
+    { providers: [ProviderXX] },
+);
+
 const ProviderDemoChildComp = create((ctx) => {
     setDebugComponentName('ProviderDemoChildComp');
     console.log(`${ctx.debugName} setup`);
     const providerX = ProviderX.use();
     const providerV = ProviderV.use();
+    let v = 3;
     // hooks(() => {
     //     console.log('use Hooks');
     //     const ref = useRef(1);
@@ -299,6 +317,7 @@ const ProviderDemoChildComp = create((ctx) => {
         const [x, setX] = useState(777);
         function addX() {
             setX(x + 1);
+            v++;
         }
 
         console.log(`${ctx.debugName} render`);
@@ -317,6 +336,9 @@ const ProviderDemoChildComp = create((ctx) => {
                 <div>
                     <button onClick={providerV.add}>addToProviderV</button>
                     {providerV.x.value}
+                </div>
+                <div>
+                    <ProviderXXComp v={v} />
                 </div>
             </>
         );
