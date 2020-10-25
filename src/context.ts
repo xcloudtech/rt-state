@@ -6,7 +6,7 @@ import { DefaultProps, HooksRef } from './common';
 export class _Context<T> {
     private cleanup: Set<() => void>;
     _providers: Provider<any, any>[];
-    _use: () => any;
+    _hooksCb: () => any;
     hooksRef: HooksRef<any>;
     executor: Executor;
     _compDebugName: string;
@@ -42,7 +42,7 @@ export class _Context<T> {
         ctxContainer.currCtx._providers?.forEach((p) => {
             p.use();
         });
-        return this._use?.();
+        return this._hooksCb?.();
     }
     /////////////////////////
     // Just for debugging.

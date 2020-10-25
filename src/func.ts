@@ -36,26 +36,22 @@ export function create<T>(setup: (ctx: Context<T>) => RFC<T>, config?: CreateCon
 
         let { executor } = ctx;
         if (!executor) {
-            ctx._isInSetup = true;
             if (config?.defaultProps) {
                 ctx._defaultProps = Object.freeze(config?.defaultProps);
             }
+            ctx._isInSetup = true;
             const render = setup(ctx);
+            ctx._isInSetup = false;
             executor = new Executor(() => render(ctx.props), update, 'comp');
             ctx.addDisposeCallBack(() => executor.unwatch());
             ctx.executor = executor;
-        }
-        if (!ctx._isInSetup) {
+        } else {
             const hooksData = ctx.use();
             const hooksRef = ctxContainer.currCtx.hooksRef;
             if (hooksRef !== undefined) {
                 // Has called hooks function, so need to update the data ref.
                 hooksRef.current = hooksData;
             }
-        }
-
-        if (ctx._isInSetup) {
-            ctx._isInSetup = false;
         }
         if (executor._dirty) {
             executor._dirty = false;
@@ -76,10 +72,10 @@ export function hooks<T>(cb: () => T): HooksRef<T> {
     if (!currCtx._isInSetup) {
         throw new Error('"hooks" can only be used within the setup function of the component.');
     }
-    if (currCtx._use != null) {
+    if (currCtx._hooksCb != null) {
         throw new Error('"hooks" can only be used once within the component.');
     }
-    currCtx._use = cb;
+    currCtx._hooksCb = cb;
 
     const current = cb();
     currCtx.hooksRef = { current };
@@ -89,7 +85,7 @@ export function hooks<T>(cb: () => T): HooksRef<T> {
 export function _checkAndPush<P>(provider: Provider<P, any>) {
     const currCtx = ctxContainer.currCtx;
     if (currCtx?._isInSetup) {
-        if (currCtx._use != null) {
+        if (currCtx._hooksCb != null) {
             throw new Error('"Provider.use()" can only be used before "hooks" if it\'s in setup function.');
         }
         currCtx._providers = currCtx._providers ?? [];
