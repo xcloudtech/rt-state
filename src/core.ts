@@ -5,9 +5,8 @@ import { batchUpdate } from './batch_update';
 
 type Key = string | number;
 type ExecutorSet = Set<Executor>;
-type KeyExecutorSet = Map<Key, ExecutorSet>;
 
-const targetMap = new WeakMap<Target, KeyExecutorSet>();
+const targetMap = new WeakMap<Target, ExecutorSet>();
 const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
 
@@ -76,7 +75,7 @@ export function state<T extends Target>(initValue: T, clone?: boolean): State<T>
     if (clone) {
         initValue = deepClone(initValue);
     }
-    targetMap.set(initValue, new Map() as KeyExecutorSet);
+    targetMap.set(initValue, new Set<Executor>());
     const proxy = getProxy(initValue, handlers);
     proxyToTargetMap.set(proxy, initValue);
     return proxy;
@@ -94,7 +93,7 @@ export function extract<T>(state: State<T>): T {
 const handlers = {
     get(target: Target, key: Key) {
         const result = Reflect.get(target, key);
-        track(target, key);
+        track(target);
         return result;
     },
     set(target: Target, key: Key, value: any) {
@@ -107,22 +106,19 @@ const handlers = {
             return true;
         }
         const result = Reflect.set(target, key, value);
-        trigger(target, key);
+        trigger(target);
         return result;
     },
 };
 
-export function track(target: Target, key: Key) {
+export function _addTargetToMap(target: Target) {
+    targetMap.set(target, new Set<Executor>());
+}
+
+export function track(target: Target) {
     const executor = currExecutor;
     if (executor) {
-        let depsMap = targetMap.get(target);
-        if (!depsMap) {
-            targetMap.set(target, (depsMap = new Map()));
-        }
-        let deps = depsMap.get(key);
-        if (!deps) {
-            depsMap.set(key, (deps = new Set()));
-        }
+        const deps = targetMap.get(target);
         if (!deps.has(executor)) {
             deps.add(executor);
             executor.deps.add(deps);
@@ -159,11 +155,10 @@ function asyncUpdate() {
     });
 }
 
-export function trigger(target: Target, key: Key) {
+export function trigger(target: Target) {
     const deps = targetMap.get(target);
-    const dep = deps?.get(key);
-    if (dep) {
-        dep.forEach((e) => {
+    if (deps.size > 0) {
+        deps.forEach((e) => {
             e._dirty = true;
             depsCtx.deps.add(e);
         });

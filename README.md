@@ -79,9 +79,9 @@ More examples can be found in `/src/demo`.
   
   `state` is used for watching any field value changes within an object, while, `stateS` is used for watching its own value change, commonly for primitive variables like `number` or `string`.
 
-  However, both are reactive only when the reference of value changes, and just watching the field values of the data, which is quite straightforward and simple.
+  However, both are reactive only when the reference of value changes, and just watch the field values of the data, which is quite straightforward and simple.
    
-   Anyway, if you are desperate for all field values within a nested object to be reactive recursively, you can just wrap the value with another `state`/`stateS` functions. But I don't think you need it for most cases. Here is an example. 
+   Anyway, if you are desperate for all field values within a nested object to be reactive recursively, you can just wrap the value with another `state`/`stateS` functions. But it is unnecessary for most cases. Here is an example. 
    
    ```js
      const data = state({ v: state({ v: state({ v: 666 }) }) });
@@ -90,14 +90,14 @@ More examples can be found in `/src/demo`.
 
 - [state](https://github.com/duchiporexia/rt-state#create)
 
-  The variable returned by `state` is a `reactive` object, which contains several fields. Each field is reactive. For example, `data.v = 666` will trigger an update of field `v`'s dependants. WARNING: `data = newValue` will not trigger an update. So, keep in mind that only the fields are reactive, the data itself is not reactive. If you want to watch the data itself. Please use `stateS` function.
+  The variable returned by `state` is a `reactive` object, which contains several fields. Each field is reactive. For example, `data.v = 666` will trigger an update of the state dependants. WARNING: `data = newValue` will not trigger an update. So, keep in mind that only the fields are reactive, the data itself is not reactive. If you want to watch the data itself. Please use `stateS` function.
   
   Besides, the field of the field is not reactive as well. It means that `line 2` of the following code will not update its dependants. Because the reference of `data.v` is the same as before.
 
    ```js
    const data = state({v: {v1: 1, v2: 2}});
    data.v.v1 = 3; // This will not trigger an update of its dependants.
-   data.v = {...data.v}; // Here, it will update `data.v`'s dependants. Because the reference of data.v changes.
+   data.v = {...data.v}; // Here, it will update its dependants. Because the reference of data.v has been changed.
    const content = extract(data); // `content` contains all fields of data.
    ```
 

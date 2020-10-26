@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { track, trigger, Executor } from './core';
+import { track, trigger, Executor, _addTargetToMap } from './core';
 import { Context, Provider, StateLink, Watcher, WatchOptions } from './model';
 import { DefaultProps, DepsReturnType, HooksRef, notEqual } from './common';
 import { _Context, ctxContainer } from './context';
@@ -83,12 +83,13 @@ export function hooks<T>(cb: () => T): HooksRef<T> {
 }
 
 export function link<T>(getter: () => T, setter?: (v: T) => void, options?: WatchOptions): StateLink<T> {
-    const linkId = {};
+    const linkTarget = {};
+    _addTargetToMap(linkTarget);
     let value: T;
 
     const update = (newValues: T) => {
         value = newValues[0];
-        trigger(linkId, '.');
+        trigger(linkTarget);
     };
 
     const watcher = watchWithOption(update, () => [getter()], options);
@@ -96,7 +97,7 @@ export function link<T>(getter: () => T, setter?: (v: T) => void, options?: Watc
     return {
         watcher, // just for debug.
         get value() {
-            track(linkId, '.');
+            track(linkTarget);
             return value;
         },
         set value(newValue: T) {
