@@ -5,8 +5,9 @@ import { batchUpdate } from './batch_update';
 
 type Key = string | number;
 type ExecutorSet = Set<Executor>;
+type KeyExecutorSet = Map<Key, ExecutorSet>;
 
-const targetMap = new WeakMap<Target, ExecutorSet>();
+const targetMap = new WeakMap<Target, ExecutorSet | KeyExecutorSet>();
 const proxyToTargetMap = new WeakMap<any, Target>();
 let currExecutor: Executor = null;
 
@@ -68,15 +69,17 @@ export function setState<T extends object>(state: State<T>, value: T, cloneField
 
 // the state for an object.
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
-export function state<T extends Target>(initValue: T, clone?: boolean): State<T> {
+// clone: when you need to change the initValue later.
+// separate: fine granularity dependency tracking based on each field, not the whole state.
+export function state<T extends Target>(initValue: T, clone?: boolean, separate?: boolean): State<T> {
     if (initValue == null || !isObj(initValue) || Array.isArray(initValue)) {
         throw new Error(`initValue should be an object and should not be null.`);
     }
     if (clone) {
         initValue = deepClone(initValue);
     }
-    const proxy = getProxy(initValue, handlers); // can't run this line after the following line in IE 11.
-    targetMap.set(initValue, new Set<Executor>());
+    const proxy = getProxy(initValue, separate ? handlersForFields : handlers); // can't run this line after the following line in IE 11.
+    targetMap.set(initValue, separate ? new Map<Key, ExecutorSet>() : new Set<Executor>());
     proxyToTargetMap.set(proxy, initValue);
     return proxy;
 }
@@ -97,19 +100,36 @@ const handlers = {
         return result;
     },
     set(target: Target, key: Key, value: any) {
-        if (!Reflect.has(target, key)) {
-            console.error(`Cannot add property ${key}, object is not extensible`);
-            return true;
-        }
-        const oldValue = Reflect.get(target, key);
-        if (value === oldValue) {
-            return true;
-        }
-        const result = Reflect.set(target, key, value);
+        const result = setTargetFieldValue(target, key, value);
         trigger(target);
         return result;
     },
 };
+
+const handlersForFields = {
+    get(target: Target, key: Key) {
+        const result = Reflect.get(target, key);
+        trackFields(target, key);
+        return result;
+    },
+    set(target: Target, key: Key, value: any) {
+        const result = setTargetFieldValue(target, key, value);
+        triggerFields(target, key);
+        return result;
+    },
+};
+
+function setTargetFieldValue(target: Target, key: Key, value: any) {
+    if (!Reflect.has(target, key)) {
+        console.error(`Cannot add property ${key}, object is not extensible`);
+        return true;
+    }
+    const oldValue = Reflect.get(target, key);
+    if (value === oldValue) {
+        return true;
+    }
+    return Reflect.set(target, key, value);
+}
 
 export function _addTargetToMap(target: Target) {
     targetMap.set(target, new Set<Executor>());
@@ -118,13 +138,31 @@ export function _addTargetToMap(target: Target) {
 export function track(target: Target) {
     const executor = currExecutor;
     if (executor) {
-        const deps = targetMap.get(target);
-        if (!deps.has(executor)) {
-            deps.add(executor);
-            executor.deps.add(deps);
-        }
+        const deps = targetMap.get(target) as ExecutorSet;
+        linkDependencies(deps, executor);
     }
 }
+
+export function trackFields(target: Target, key: Key) {
+    const executor = currExecutor;
+    if (executor) {
+        const depsMap = targetMap.get(target) as KeyExecutorSet;
+        let deps: ExecutorSet = depsMap.get(key);
+        if (!deps) {
+            deps = new Set<Executor>();
+            depsMap.set(key, deps);
+        }
+        linkDependencies(deps, executor);
+    }
+}
+
+function linkDependencies(deps: ExecutorSet, executor: Executor) {
+    if (!deps.has(executor)) {
+        deps.add(executor);
+        executor.deps.add(deps);
+    }
+}
+
 const depsCtx = {
     timer: null,
     triggerTime: null,
@@ -157,6 +195,18 @@ function asyncUpdate() {
 
 export function trigger(target: Target) {
     const deps = targetMap.get(target);
+    runUpdates(deps as ExecutorSet);
+}
+
+function triggerFields(target: Target, key: Key) {
+    const depsMap = targetMap.get(target) as KeyExecutorSet;
+    const deps = depsMap.get(key);
+    if (deps) {
+        runUpdates(deps);
+    }
+}
+
+function runUpdates(deps: ExecutorSet) {
     if (deps.size > 0) {
         deps.forEach((e) => {
             e._dirty = true;

@@ -63,6 +63,7 @@ export const ReactiveDemo = create((ctx) => {
                 <UseRStateSComp style={{ backgroundColor: 'green' }} />
                 <StateSComp />
                 <UseRStateComp />
+                <UseRStateAndSeparateFieldsComp />
                 <ProviderDemoComp />
                 <WatchAndBatchUpdateTestComp />
                 <ReactBuiltinBatchUpdateComp />
@@ -181,6 +182,49 @@ const UseRStateSComp = createS((props) => {
         <div style={props.style} className={props.className}>
             <button onClick={add}>add</button>
             {reactiveNode}
+        </div>
+    );
+});
+
+const UseRStateAndSeparateFieldsComp = createS(() => {
+    console.log('UseRStateAndFieldsComp render');
+
+    const dataSeparate = rst.useRState({ x: 30, y: 55 }, false, true);
+    const data = rst.useRState({ x: 30, y: 55 });
+
+    function addX() {
+        dataSeparate.x++;
+        data.x++;
+    }
+    function addY() {
+        dataSeparate.y++;
+        data.y++;
+    }
+
+    return (
+        <div>
+            <button onClick={addX}>addX</button>
+            <button onClick={addY}>addY</button>
+            <br />
+            {rst.view(() => {
+                console.log('render dataSeparate.x');
+                return <span>dataSeparate.x:{dataSeparate.x}</span>;
+            })}
+            &nbsp;&nbsp;
+            {rst.view(() => {
+                console.log('render dataSeparate.y');
+                return <span>dataSeparate.y:{dataSeparate.y}</span>;
+            })}
+            <br />
+            {rst.view(() => {
+                console.log('render data.x');
+                return <span>data.x:{data.x}</span>;
+            })}
+            &nbsp;&nbsp;
+            {rst.view(() => {
+                console.log('render data.y');
+                return <span>data.y:{data.y}</span>;
+            })}
         </div>
     );
 });

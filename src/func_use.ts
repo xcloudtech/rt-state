@@ -14,12 +14,12 @@ export function useRStateS<T>(initValue?: T): StateS<T> {
     }, []);
 }
 
-export function useRState<T extends Target>(initValue: T, clone?: boolean): T {
+export function useRState<T extends Target>(initValue: T, clone?: boolean, separate?: boolean): T {
     return useMemo(() => {
         if (ctxContainer.currCtx == null) {
             throw new Error('useRState could only be used in create/createS');
         }
-        return state(initValue, clone);
+        return state(initValue, clone, separate);
     }, []);
 }
 
