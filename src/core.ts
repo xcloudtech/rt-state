@@ -75,8 +75,8 @@ export function state<T extends Target>(initValue: T, clone?: boolean): State<T>
     if (clone) {
         initValue = deepClone(initValue);
     }
+    const proxy = getProxy(initValue, handlers); // can't run this line after the following line in IE 11.
     targetMap.set(initValue, new Set<Executor>());
-    const proxy = getProxy(initValue, handlers);
     proxyToTargetMap.set(proxy, initValue);
     return proxy;
 }
