@@ -2,6 +2,11 @@ import { Provider } from './model';
 
 export type Target = object;
 
+export interface StateOptions {
+    clone?: boolean;
+    separate?: boolean;
+}
+
 export interface HooksRef<T> {
     current: T;
 }

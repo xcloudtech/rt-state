@@ -1,6 +1,6 @@
 import { State, StateS } from './model';
 import { getProxy } from './proxy';
-import { deepClone, isObj, Target } from './common';
+import { deepClone, isObj, StateOptions, Target } from './common';
 import { batchUpdate } from './batch_update';
 
 type Key = string | number;
@@ -71,13 +71,14 @@ export function setState<T extends object>(state: State<T>, value: T, cloneField
 // WARNING: just watch one level: just all fields of the object, not for the fields of any fields.
 // clone: when you need to change the initValue later.
 // separate: fine granularity dependency tracking based on each field, not the whole state.
-export function state<T extends Target>(initValue: T, clone?: boolean, separate?: boolean): State<T> {
+export function state<T extends Target>(initValue: T, options?: StateOptions): State<T> {
     if (initValue == null || !isObj(initValue) || Array.isArray(initValue)) {
         throw new Error(`initValue should be an object and should not be null.`);
     }
-    if (clone) {
+    if (options?.clone) {
         initValue = deepClone(initValue);
     }
+    const separate = options?.separate;
     const proxy = getProxy(initValue, separate ? handlersForFields : handlers); // can't run this line after the following line in IE 11.
     targetMap.set(initValue, separate ? new Map<Key, ExecutorSet>() : new Set<Executor>());
     proxyToTargetMap.set(proxy, initValue);
@@ -100,9 +101,11 @@ const handlers = {
         return result;
     },
     set(target: Target, key: Key, value: any) {
-        const result = setTargetFieldValue(target, key, value);
-        trigger(target);
-        return result;
+        const success = setTargetFieldValue(target, key, value);
+        if (success) {
+            trigger(target);
+        }
+        return true;
     },
 };
 
@@ -113,20 +116,22 @@ const handlersForFields = {
         return result;
     },
     set(target: Target, key: Key, value: any) {
-        const result = setTargetFieldValue(target, key, value);
-        triggerFields(target, key);
-        return result;
+        const success = setTargetFieldValue(target, key, value);
+        if (success) {
+            triggerFields(target, key);
+        }
+        return true;
     },
 };
 
 function setTargetFieldValue(target: Target, key: Key, value: any) {
     if (!Reflect.has(target, key)) {
         console.error(`Cannot add property ${key}, object is not extensible`);
-        return true;
+        return false;
     }
     const oldValue = Reflect.get(target, key);
     if (value === oldValue) {
-        return true;
+        return false;
     }
     return Reflect.set(target, key, value);
 }

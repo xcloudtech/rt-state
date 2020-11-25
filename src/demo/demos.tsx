@@ -189,7 +189,7 @@ const UseRStateSComp = createS((props) => {
 const UseRStateAndSeparateFieldsComp = createS(() => {
     console.log('UseRStateAndFieldsComp render');
 
-    const dataSeparate = rst.useRState({ x: 30, y: 55 }, false, true);
+    const dataSeparate = rst.useRState({ x: 30, y: 55 }, { clone: false, separate: true });
     const data = rst.useRState({ x: 30, y: 55 });
 
     function addX() {
