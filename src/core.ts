@@ -1,6 +1,6 @@
-import { State, StateS } from './model';
+import { State, StateS, StateOptions } from './model';
 import { getProxy } from './proxy';
-import { deepClone, isObj, StateOptions, Target } from './common';
+import { deepClone, isObj, Target } from './common';
 import { batchUpdate } from './batch_update';
 
 type Key = string | number;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { track, trigger, Executor, _addTargetToMap } from './core';
-import { Context, Provider, StateLink, Watcher, WatchOptions } from './model';
-import { DefaultProps, DepsReturnType, HooksRef, notEqual } from './common';
+import { Context, Provider, StateLink, HooksRef, Watcher, WatchOptions } from './model';
+import { DefaultProps, DepsReturnType, notEqual } from './common';
 import { _Context, ctxContainer } from './context';
 import { _provide } from './provider';
 

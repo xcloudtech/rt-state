@@ -1,7 +1,7 @@
-import { StateS } from './model';
+import { StateS, StateOptions } from './model';
 import { useMemo } from 'react';
 import { state, stateS } from './core';
-import { StateOptions, Target } from './common';
+import { Target } from './common';
 import { stateArray, StateArray } from './long_array';
 
 export function useRStateS<T>(initValue?: T): StateS<T> {

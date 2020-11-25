@@ -1,6 +1,6 @@
-import { Provider, StateS } from './model';
+import { Provider, StateS, HooksRef } from './model';
 import { Executor, stateS } from './core';
-import { DefaultProps, HooksRef, ProviderSetupContext } from './common';
+import { DefaultProps, ProviderSetupContext } from './common';
 
 // Context can be used in any functions within the setup function.
 export class _Context<T> {

@@ -2,10 +2,19 @@ import * as React from 'react';
 
 export type State<T> = T;
 
+export interface StateOptions {
+    clone?: boolean;
+    separate?: boolean;
+}
+
 export interface StateS<T> {
     value: T;
     extract(): T; // extract the data without creating a dependency.
     forceUpdate(): void;
+}
+
+export interface HooksRef<T> {
+    current: T;
 }
 
 export interface StateLink<T> {
