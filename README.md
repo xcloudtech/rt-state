@@ -143,9 +143,9 @@ More examples can be found in `/src/demo`.
 
 - [createS](https://github.com/duchiporexia/rt-state#createS)
 
-  A simplified version of `create` function to create `non-reactive` components. The components created by this function can be only re-rendered when its props change. (non-reactive)
+  A simplified version of `create` function to create `reactive` components.
   
-  There is no `setup` function, just a `render` function. There is no rt-state API calls within the `render` function. For example, there shouldn't be any local state* in it, so it's impossible to update the component with its local state*. However, it is still reactive for the external state*.
+  There is no `setup` function, just a `render` function. If you want to create local states, please use `rst.useRState`/`rst.useRStateS` instead of `rst.state`/`rst.stateS`. Besides, it is reactive for the external states when they are used in the `render` function.
 
 #### watch APIs
 
