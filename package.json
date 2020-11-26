@@ -22,6 +22,7 @@
   },
   "keywords": [
     "react",
+    "react-native",
     "state",
     "reactive",
     "redux"
@@ -36,8 +37,7 @@
     "proxy-polyfill": "^0.3.2"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-dom": "*"
+    "react": "*"
   },
   "devDependencies": {
     "@types/node": "^14.14.10",
