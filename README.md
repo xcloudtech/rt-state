@@ -61,7 +61,8 @@ npm i rt-state@latest -S
 
 render(<Demo name={'demo'} />, document.getElementById('root'));
 ```
-More examples can be found in `/src/demo`.
+More examples of code can be found in `/src/demo`.
+or see [demo](https://duchiporexia.github.com/rt-state)
 
 
 ### rt-state Core APIs
