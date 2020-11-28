@@ -1,0 +1,27 @@
+import { fireEvent, render, waitFor } from '@testing-library/react';
+import React from 'react';
+import '@testing-library/jest-dom/extend-expect';
+import { delay } from './utils';
+import { DemoHooks } from '../demo/demo-hooks';
+
+test('hooks: DemoHooks', async () => {
+    const hooksCallCount = jest.fn();
+    const { getByTestId } = render(<DemoHooks hooksCallCount={hooksCallCount} />);
+    await delay();
+    expect(hooksCallCount).toBeCalledTimes(1);
+    expect(getByTestId('num')).toHaveTextContent('num:(666)');
+    const add1Button = getByTestId('add1');
+    const add100Button = getByTestId('add100');
+
+    fireEvent.click(add1Button);
+    await waitFor(() => {
+        expect(getByTestId('num')).toHaveTextContent('num:(667)');
+    });
+    expect(hooksCallCount).toBeCalledTimes(2);
+
+    fireEvent.click(add100Button);
+    await waitFor(() => {
+        expect(getByTestId('num')).toHaveTextContent('num:(767)');
+    });
+    expect(hooksCallCount).toBeCalledTimes(3);
+});
