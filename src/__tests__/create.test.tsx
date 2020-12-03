@@ -39,7 +39,7 @@ test('create: DemoBatchReRender', async () => {
 
     fireEvent.click(addButton);
     await waitFor(() => {
-        expect(getByTestId('value')).toHaveTextContent('value:(1100)');
+        expect(getByTestId('value')).toHaveTextContent('value:(100100)');
     });
     // only re-render once.
     expect(callCount).toBeCalledTimes(3);

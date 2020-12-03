@@ -37,7 +37,7 @@ export const DemoBatchReRender = rst.create<{
     ctx.props.callCount?.();
     const data = rst.stateS(100);
     function add1000Times() {
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 100000; i++) {
             data.value++;
         }
     }

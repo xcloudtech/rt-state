@@ -169,7 +169,7 @@ function linkDependencies(deps: ExecutorSet, executor: Executor) {
 }
 
 const depsCtx = {
-    timer: null,
+    willUpdate: false,
     deps: new Set<Executor>(),
 };
 
@@ -184,9 +184,9 @@ export function unstable_disableDelay(cb: () => void) {
 }
 
 function realUpdates() {
+    depsCtx.willUpdate = false;
     const deps = depsCtx.deps;
     depsCtx.deps = new Set<Executor>();
-    depsCtx.timer = null;
     batchUpdate(function () {
         deps.forEach((e) => e.update());
     });
@@ -214,6 +214,10 @@ function asyncUpdates(deps: ExecutorSet) {
         if (DISABLE_DELAY) {
             return;
         }
+        if (depsCtx.willUpdate) {
+            return;
+        }
+        depsCtx.willUpdate = true;
         Promise.resolve().then(realUpdates);
     }
 }
