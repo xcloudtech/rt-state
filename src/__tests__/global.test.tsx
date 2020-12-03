@@ -12,10 +12,11 @@ test('global: DemoGlobalStateAndWatcher', async () => {
     const addButton = getByTestId('add');
     const unwatchButton = getByTestId('unwatch');
 
+    callCount.mockClear();
     fireEvent.click(addButton);
     // just re-render Child component
     await delay();
-    expect(callCount).toBeCalledTimes(5);
+    expect(callCount).toBeCalledTimes(1);
     expect(getByTestId('watchCalled')).toHaveTextContent('watchCalled:(2)');
 
     await waitFor(() => {
@@ -23,19 +24,21 @@ test('global: DemoGlobalStateAndWatcher', async () => {
         expect(getByTestId('num')).toHaveTextContent('num:(21)');
     });
 
+    callCount.mockClear();
     fireEvent.click(addButton);
     await delay();
     // just re-render Child component
-    expect(callCount).toBeCalledTimes(6);
+    expect(callCount).toBeCalledTimes(1);
     // just call watch cb once.
     expect(getByTestId('watchCalled')).toHaveTextContent('watchCalled:(3)');
 
+    callCount.mockClear();
     fireEvent.click(unwatchButton);
     await delay();
     fireEvent.click(addButton);
     await delay();
     // just re-render Child component
-    expect(callCount).toBeCalledTimes(7);
+    expect(callCount).toBeCalledTimes(1);
     // will not call watch cb again.
     expect(getByTestId('watchCalled')).toHaveTextContent('watchCalled:(3)');
 });

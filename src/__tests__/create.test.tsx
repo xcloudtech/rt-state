@@ -37,18 +37,21 @@ test('create: DemoBatchReRender', async () => {
     expect(getByTestId('value')).toHaveTextContent('value:(100)');
     const addButton = getByTestId('add');
 
+    callCount.mockClear();
     fireEvent.click(addButton);
     await waitFor(() => {
         expect(getByTestId('value')).toHaveTextContent('value:(100100)');
     });
     // only re-render once.
-    expect(callCount).toBeCalledTimes(3);
+    expect(callCount).toBeCalledTimes(1);
 
+    callCount.mockClear();
     rerender(<DemoBatchReRender callCount={callCount} />);
     // will not re-render
-    expect(callCount).toBeCalledTimes(3);
+    expect(callCount).toBeCalledTimes(0);
 
+    callCount.mockClear();
     rerender(<DemoBatchReRender x={'x'} callCount={callCount} />);
     // will re-render once, not re-create
-    expect(callCount).toBeCalledTimes(4);
+    expect(callCount).toBeCalledTimes(1);
 });

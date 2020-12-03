@@ -13,15 +13,17 @@ test('hooks: DemoHooks', async () => {
     const add1Button = getByTestId('add1');
     const add100Button = getByTestId('add100');
 
+    hooksCallCount.mockClear();
     fireEvent.click(add1Button);
     await waitFor(() => {
         expect(getByTestId('num')).toHaveTextContent('num:(667)');
     });
-    expect(hooksCallCount).toBeCalledTimes(2);
+    expect(hooksCallCount).toBeCalledTimes(1);
 
+    hooksCallCount.mockClear();
     fireEvent.click(add100Button);
     await waitFor(() => {
         expect(getByTestId('num')).toHaveTextContent('num:(767)');
     });
-    expect(hooksCallCount).toBeCalledTimes(3);
+    expect(hooksCallCount).toBeCalledTimes(1);
 });

@@ -36,7 +36,7 @@ export const DemoBatchReRender = rst.create<{
 }>((ctx) => {
     ctx.props.callCount?.();
     const data = rst.stateS(100);
-    function add1000Times() {
+    function addManyTimes() {
         for (let i = 0; i < 100000; i++) {
             data.value++;
         }
@@ -45,7 +45,7 @@ export const DemoBatchReRender = rst.create<{
         ctx.props.callCount?.();
         return (
             <div>
-                <button data-testid="add" onClick={add1000Times}>
+                <button data-testid="add" onClick={addManyTimes}>
                     add
                 </button>
                 &nbsp;

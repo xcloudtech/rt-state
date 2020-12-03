@@ -17,11 +17,15 @@ test('watch: DemoWatch', async () => {
     expect(watch2CallCount).toBeCalledTimes(1);
     expect(callCount).toBeCalledTimes(2);
     const changeButton = getByTestId('change');
+
+    watch1CallCount.mockClear();
+    watch2CallCount.mockClear();
+    callCount.mockClear();
     fireEvent.click(changeButton);
     await delay();
-    expect(watch1CallCount).toBeCalledTimes(1);
-    expect(watch2CallCount).toBeCalledTimes(2);
-    expect(callCount).toBeCalledTimes(2);
+    expect(watch1CallCount).toBeCalledTimes(0);
+    expect(watch2CallCount).toBeCalledTimes(1);
+    expect(callCount).toBeCalledTimes(0);
 });
 
 test('watch: DemoWatchProps', async () => {
@@ -36,31 +40,39 @@ test('watch: DemoWatchProps', async () => {
     expect(callCount).toBeCalledTimes(2);
     expect(getByTestId('xy')).toHaveTextContent('x:(10) y:(20)');
 
+    watchCallCount.mockClear();
+    callCount.mockClear();
     rerender(<DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(1);
-    expect(callCount).toBeCalledTimes(2);
+    expect(watchCallCount).toBeCalledTimes(0);
+    expect(callCount).toBeCalledTimes(0);
     expect(getByTestId('xy')).toHaveTextContent('x:(10) y:(20)');
 
+    watchCallCount.mockClear();
+    callCount.mockClear();
     obj = { ...obj };
     rerender(<DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(1);
-    expect(callCount).toBeCalledTimes(3);
+    expect(watchCallCount).toBeCalledTimes(0);
+    expect(callCount).toBeCalledTimes(1);
     expect(getByTestId('xy')).toHaveTextContent('x:(10) y:(20)');
 
+    watchCallCount.mockClear();
+    callCount.mockClear();
     obj = { x: 10, y: 20 };
     rerender(<DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(1);
-    expect(callCount).toBeCalledTimes(4);
+    expect(watchCallCount).toBeCalledTimes(0);
+    expect(callCount).toBeCalledTimes(1);
     expect(getByTestId('xy')).toHaveTextContent('x:(10) y:(20)');
 
+    watchCallCount.mockClear();
+    callCount.mockClear();
     obj = { x: 11, y: 20 };
     rerender(<DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(2);
-    expect(callCount).toBeCalledTimes(5);
+    expect(watchCallCount).toBeCalledTimes(1);
+    expect(callCount).toBeCalledTimes(1);
     expect(getByTestId('xy')).toHaveTextContent('x:(11) y:(20)');
 });
 
@@ -72,19 +84,22 @@ test('watch: DemoWatchExternalState', async () => {
     expect(callCount).toBeCalledTimes(2);
     expect(getByTestId('nonReactiveData')).toHaveTextContent('nonReactiveData:(20)');
 
+    callCount.mockClear();
     state.num++;
     await delay();
-    expect(callCount).toBeCalledTimes(3);
+    expect(callCount).toBeCalledTimes(1);
     expect(getByTestId('nonReactiveData')).toHaveTextContent('nonReactiveData:(22)');
 
+    callCount.mockClear();
     state.num++;
     await delay();
-    expect(callCount).toBeCalledTimes(3);
+    expect(callCount).toBeCalledTimes(0);
     expect(getByTestId('nonReactiveData')).toHaveTextContent('nonReactiveData:(22)');
 
+    callCount.mockClear();
     state.num++;
     await delay();
-    expect(callCount).toBeCalledTimes(4);
+    expect(callCount).toBeCalledTimes(1);
     expect(getByTestId('nonReactiveData')).toHaveTextContent('nonReactiveData:(26)');
 });
 
