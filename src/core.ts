@@ -183,7 +183,6 @@ export function unstable_disableDelay(cb: () => void) {
     DISABLE_DELAY = old;
 }
 
-const DELAY_IN_MS = 10;
 function realUpdates() {
     const deps = depsCtx.deps;
     depsCtx.deps = new Set<Executor>();
@@ -215,10 +214,7 @@ function asyncUpdates(deps: ExecutorSet) {
         if (DISABLE_DELAY) {
             return;
         }
-
-        if (depsCtx.timer == null) {
-            depsCtx.timer = setTimeout(realUpdates, DELAY_IN_MS);
-        }
+        Promise.resolve().then(realUpdates);
     }
 }
 

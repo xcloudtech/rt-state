@@ -9,6 +9,7 @@ import { DemoNormalArray } from '../src/demo/demo-normal-array';
 import { DemoProviderContainer, DemoProviderWithUseContainer, DemoProviderWithWatch } from '../src/demo/demo-provider';
 import { DemoUseRState, DemoUseRStateCreateSWrapper, DemoUseRStateS } from '../src/demo/demo-view';
 import { DemoDisableDelay, DemoWatch } from '../src/demo/demo-watch';
+import { DemoSetState } from '../src/demo/demo-state';
 
 const EmptyNode = <div>Empty! Please see the code directly.</div>;
 
@@ -26,7 +27,7 @@ storiesOf('demo-state', module)
     .add('DemoState', () => EmptyNode)
     .add('separate DemoState', () => EmptyNode)
     .add('DemoStateS', () => EmptyNode)
-    .add('DemoSetState', () => EmptyNode)
+    .add('DemoSetState', () => <DemoSetState />)
     .add('DemoShowBadCase', () => EmptyNode)
     .add('state extract', () => EmptyNode);
 
