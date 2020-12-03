@@ -170,7 +170,6 @@ function linkDependencies(deps: ExecutorSet, executor: Executor) {
 
 const depsCtx = {
     timer: null,
-    triggerTime: null,
     deps: new Set<Executor>(),
 };
 
@@ -180,16 +179,12 @@ export function unstable_disableDelay(cb: () => void) {
     const old = DISABLE_DELAY;
     DISABLE_DELAY = true;
     cb();
+    realUpdates();
     DISABLE_DELAY = old;
 }
 
 const DELAY_IN_MS = 10;
-function asyncUpdate() {
-    const now = new Date().getTime();
-    if (now < depsCtx.triggerTime) {
-        depsCtx.timer = setTimeout(asyncUpdate, DELAY_IN_MS);
-        return;
-    }
+function realUpdates() {
     const deps = depsCtx.deps;
     depsCtx.deps = new Set<Executor>();
     depsCtx.timer = null;
@@ -200,32 +195,29 @@ function asyncUpdate() {
 
 export function trigger(target: Target) {
     const deps = targetMap.get(target);
-    runUpdates(deps as ExecutorSet);
+    asyncUpdates(deps as ExecutorSet);
 }
 
 function triggerFields(target: Target, key: Key) {
     const depsMap = targetMap.get(target) as KeyExecutorSet;
     const deps = depsMap.get(key);
     if (deps) {
-        runUpdates(deps);
+        asyncUpdates(deps);
     }
 }
 
-function runUpdates(deps: ExecutorSet) {
+function asyncUpdates(deps: ExecutorSet) {
     if (deps.size > 0) {
         deps.forEach((e) => {
             e._dirty = true;
             depsCtx.deps.add(e);
         });
         if (DISABLE_DELAY) {
-            depsCtx.triggerTime = 0;
-            asyncUpdate();
             return;
         }
-        depsCtx.triggerTime = new Date().getTime() + DELAY_IN_MS;
 
         if (depsCtx.timer == null) {
-            depsCtx.timer = setTimeout(asyncUpdate, DELAY_IN_MS);
+            depsCtx.timer = setTimeout(realUpdates, DELAY_IN_MS);
         }
     }
 }

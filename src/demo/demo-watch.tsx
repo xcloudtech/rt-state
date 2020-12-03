@@ -117,7 +117,7 @@ export const DemoDisableDelay = rst.create<{
         for (let i = 0; i < 10; i++) {
             rst.unstable_disableDelay(() => {
                 data.v1 += 1;
-                data.v2 -= 1;
+                data.v2 += 1;
             });
         }
     };

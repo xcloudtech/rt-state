@@ -96,8 +96,11 @@ test('watch: DemoDisableDelay', async () => {
     expect(watchCallCount).toBeCalledTimes(1);
     expect(callCount).toBeCalledTimes(2);
     const changeButton = getByTestId('change');
+
+    watchCallCount.mockClear();
+    callCount.mockClear();
     fireEvent.click(changeButton);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(21);
-    expect(callCount).toBeCalledTimes(2);
+    expect(watchCallCount).toBeCalledTimes(10);
+    expect(callCount).toBeCalledTimes(0);
 });
