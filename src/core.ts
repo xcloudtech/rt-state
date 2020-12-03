@@ -186,10 +186,12 @@ export function unstable_disableDelay(cb: () => void) {
 function realUpdates() {
     depsCtx.willUpdate = false;
     const deps = depsCtx.deps;
-    depsCtx.deps = new Set<Executor>();
-    batchUpdate(function () {
-        deps.forEach((e) => e.update());
-    });
+    if (deps.size > 0) {
+        depsCtx.deps = new Set<Executor>();
+        batchUpdate(function () {
+            deps.forEach((e) => e.update());
+        });
+    }
 }
 
 export function trigger(target: Target) {
@@ -211,14 +213,11 @@ function asyncUpdates(deps: ExecutorSet) {
             e._dirty = true;
             depsCtx.deps.add(e);
         });
-        if (DISABLE_DELAY) {
-            return;
-        }
-        if (depsCtx.willUpdate) {
+        if (DISABLE_DELAY || depsCtx.willUpdate) {
             return;
         }
         depsCtx.willUpdate = true;
-        Promise.resolve().then(realUpdates);
+        setTimeout(realUpdates, 10); // Promise.resolve().then(realUpdates);
     }
 }
 
