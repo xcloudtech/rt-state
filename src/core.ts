@@ -261,7 +261,10 @@ export class Executor {
         currExecutor = this;
         const ret = this._getter();
         currExecutor = parent;
-        return ret ?? null;
+        if (ret === undefined) {
+            return null;
+        }
+        return ret;
     }
 
     private cleanup(): void {
