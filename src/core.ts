@@ -261,7 +261,7 @@ export class Executor {
         currExecutor = this;
         const ret = this._getter();
         currExecutor = parent;
-        return ret;
+        return ret ?? null;
     }
 
     private cleanup(): void {
