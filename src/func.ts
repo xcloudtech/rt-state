@@ -60,7 +60,7 @@ export function create<T>(setup: (ctx: Context<T>) => RFC<T>, config?: CreateCon
         ctxContainer.currCtx = null;
         return dom;
     };
-    return _provide(config?.providers, Comp);
+    return _provide(Comp, config?.providers);
 }
 
 export function createS<T>(Comp: RFC<T>, config?: CreateConfig<T>) {
