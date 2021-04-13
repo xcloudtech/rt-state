@@ -15,3 +15,7 @@ export function useRState<T extends Target>(initValue: T, options?: StateOptions
 export function useRStateArray<T>(initValues?: T[]): StateArray<T> {
     return useMemo(() => stateArray(initValues), []);
 }
+
+export function useOnce<T>(initFunc: () => T) {
+    return useMemo(initFunc, []);
+}

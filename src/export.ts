@@ -4,7 +4,7 @@ import { state, extract, setState, stateS, unstable_disableDelay } from './core'
 import { State, StateOptions, StateS, StateLink, HooksRef, Context, Watcher, WatchOptions } from './model';
 import { stateArray, StateArray, StateArrayItem } from './long_array';
 import { view } from './view';
-import { useRState, useRStateS, useRStateArray } from './func_use';
+import { useRState, useRStateS, useRStateArray, useOnce } from './func_use';
 
 export {
     state,
@@ -15,6 +15,7 @@ export {
     useRStateS,
     stateArray,
     useRStateArray,
+    useOnce,
     create,
     createS,
     createProvider,

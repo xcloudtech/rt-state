@@ -66,12 +66,15 @@ function _checkAndPush<P>(provider: Provider<P, any>) {
     }
 }
 
-export function _provide<T>(providers: Provider<any, any>[], Comp: React.FC<T>): React.FC<T> {
+export function _provide<T extends object>(
+    Comp: React.FC<T>,
+    providers: Provider<any, any>[],
+): React.NamedExoticComponent<T> {
     if (providers == null) {
-        return React.memo(Comp);
+        return React.memo<T>(Comp);
     }
 
-    return React.memo((props) => {
+    return React.memo<T>((props) => {
         let dom = <Comp {...props} />;
         providers.forEach((p) => {
             const { _Provider, initValue } = p as any;
