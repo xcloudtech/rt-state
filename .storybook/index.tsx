@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 import { DemoLink } from '../src/demo/demo-link';
 import { DemoBatchReRender, DemoCreateS, DemoDefaultProps } from '../src/demo/demo-create';

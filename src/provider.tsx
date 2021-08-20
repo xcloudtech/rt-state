@@ -76,13 +76,9 @@ export function _provide<T extends object>(
 
     return React.memo<T>((props) => {
         let dom = <Comp {...props} />;
-        providers.forEach((p, index) => {
+        providers.forEach((p) => {
             const { _Provider, initValue } = p as any;
-            dom = (
-                <_Provider key={index} initValue={initValue}>
-                    {dom}
-                </_Provider>
-            );
+            dom = <_Provider initValue={initValue}>{dom}</_Provider>;
         });
         return dom;
     });
