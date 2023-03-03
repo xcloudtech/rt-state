@@ -2,7 +2,7 @@ import { rst } from '../index';
 import { fireEvent, render } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { delay } from './utils';
-import React from 'react';
+import * as React from 'react';
 import { DemoSetState, DemoShowBadCase, DemoState, DemoStateS } from '../demo/demo-state';
 
 test('state: DemoState', async () => {

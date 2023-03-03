@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { delay } from './utils';

@@ -42,6 +42,7 @@ class _StateS<T> {
         this._state.value++;
     }
 }
+
 // just to wrap any data within the value field of a state.
 // can be used for any data, especially for number and string, or an array.
 // WARNING: just watch one level: the value field of the state.

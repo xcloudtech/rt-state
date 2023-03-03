@@ -1,5 +1,5 @@
 import { fireEvent, render } from '@testing-library/react';
-import React from 'react';
+import * as React from 'react';
 import '@testing-library/jest-dom/extend-expect';
 import { delay } from './utils';
 import { DemoLongArray } from '../demo/demo-long-array';
