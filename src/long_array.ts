@@ -59,6 +59,7 @@ class _StateArray<T> {
     }
     set(idx: number, value: T) {
         const item = this.getItem(idx);
+        // eslint-disable-next-line eqeqeq
         if (item == null) {
             return;
         }

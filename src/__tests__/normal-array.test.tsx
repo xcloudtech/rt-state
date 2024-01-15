@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import { DemoNormalArray } from '../demo/demo-normal-array';
 import { delay } from './utils';
 

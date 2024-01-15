@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react';
 import * as React from 'react';
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import { delay } from './utils';
 import { DemoLongArray } from '../demo/demo-long-array';
 const originalConsoleLog = console.log;

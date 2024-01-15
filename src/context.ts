@@ -55,6 +55,7 @@ export class _Context<T> {
     }
     // latest Prop values with defaultProps.
     get props(): T {
+        // eslint-disable-next-line eqeqeq
         if (this._defaultProps != null) {
             return Object.freeze({ ...this._defaultProps, ...this._props });
         }

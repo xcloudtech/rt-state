@@ -51,6 +51,7 @@ export function createProvider<T, I>(setup: (initValue: I) => T): Provider<T, I>
 function _checkAndPush<P>(provider: Provider<P, any>) {
     const currCtx = ctxContainer.currCtx;
     if (currCtx?._isInSetup) {
+        // eslint-disable-next-line eqeqeq
         if (currCtx._hooksCb != null) {
             throw new Error('"Provider.use()" can only be used before "hooks" if it\'s in setup function.');
         }
@@ -70,6 +71,7 @@ export function _provide<T extends object>(
     Comp: React.FC<T>,
     providers: Provider<any, any>[],
 ): React.NamedExoticComponent<T> {
+    // eslint-disable-next-line eqeqeq
     if (providers == null) {
         return React.memo<T>(Comp);
     }

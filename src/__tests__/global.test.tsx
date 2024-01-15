@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor } from '@testing-library/react';
 import * as React from 'react';
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import { DemoGlobalStateAndWatcher } from '../demo/demo-global';
 import { delay } from './utils';
 

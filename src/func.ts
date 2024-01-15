@@ -72,6 +72,7 @@ export function hooks<T>(cb: () => T): HooksRef<T> {
     if (!currCtx._isInSetup) {
         throw new Error('"hooks" can only be used within the setup function of the component.');
     }
+    // eslint-disable-next-line eqeqeq
     if (currCtx._hooksCb != null) {
         throw new Error('"hooks" can only be used once within the component.');
     }
@@ -101,6 +102,7 @@ export function link<T>(getter: () => T, setter?: (v: T) => void, options?: Watc
             return value;
         },
         set value(newValue: T) {
+            // eslint-disable-next-line eqeqeq
             if (watcher.active && setter != null) {
                 setter(newValue);
             }
@@ -147,6 +149,7 @@ function watchWithOption(
     const executor = new Executor(getter, update, 'watcher');
 
     const { currProviderSetupCtx } = ctxContainer;
+    // eslint-disable-next-line eqeqeq
     if (currProviderSetupCtx != null) {
         // in Provider setup callback function.
         currProviderSetupCtx.unWatchers.push(() => executor.unwatch());

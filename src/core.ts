@@ -73,6 +73,7 @@ export function setState<T extends object>(state: State<T>, value: T, cloneField
 // clone: when you need to change the initValue later.
 // separate: fine granularity dependency tracking based on each field, not the whole state.
 export function state<T extends Target>(initValue: T, options?: StateOptions): State<T> {
+    // eslint-disable-next-line eqeqeq
     if (initValue == null || !isObj(initValue) || Array.isArray(initValue)) {
         throw new Error(`initValue should be an object and should not be null.`);
     }
@@ -89,6 +90,7 @@ export function state<T extends Target>(initValue: T, options?: StateOptions): S
 // extract the data without creating a dependency.
 export function extract<T>(state: State<T>): T {
     let target;
+    // eslint-disable-next-line eqeqeq
     if (state == null || (target = proxyToTargetMap.get(state)) == null) {
         throw new Error('invalid state.');
     }
