@@ -5,7 +5,7 @@
 ### Features
 
 1. Automatically track the dependency between views and states, and only update the views depending on the changed state values.
-2. Unify local state and global state management. So, don't need `useContext` or wrap the component with `Provider` any more. (rt-state has its own provider, call `provider.use()` to get data from parent or create global state, and share between different components.)
+2. Unify local state and global state management. So, don't need `useContext` or wrap the component with `Provider` anymore. (rt-state has its own provider, call `provider.use()` to get data from parent or create global state, and share between different components.)
 3. Fine granularity of controlling when and how to update the view with `watch`/`link` functions.
 4. An optimized `state` function for long Array.
 5. React Hooks API integration. React Hooks API Calls can be wrapped by `hooks` within the `setup` function.
