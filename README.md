@@ -24,9 +24,9 @@ I need a library, with which I can use function components happily!
 
 ### Solution
 
-In rt-state, it uses `create` function to create components, which takes a `setup` callback function as its parameter. The `setup` function is used to initialize states with `state`/`stateS`/`stateArray`, or call `watch`/`link` functions, or even create any local variables and user defined functions. Then, it returns a render function. The returned `render` function is used for re-rendering the component afterwards.
+In rt-state, it uses `create` function to create components, which takes a `setup` callback function as its parameter. The `setup` function is used to initialize states with `state`/`stateS`/`stateArray`, or call `watch`/`link` functions, or even create any local variables and user defined functions. Then, it returns a render function. The returned `render` function is used for re-rendering the component afterward.
 
-As you see, rt-state creates variables within the `closure` of `setup` callback. So, all of the variables are accessible to the `render` function. We don't have to redefine the local data or callback functions repeatedly, because the `closure` can keep the references of data or functions be the same as before. Now, you don't have to use `useCallback` or `useRef` any more. Just use the local variables and local functions directly.
+As you see, rt-state creates variables within the `closure` of `setup` callback. So, all the variables are accessible to the `render` function. We don't have to redefine the local data or callback functions repeatedly, because the `closure` can keep the references of data or functions be the same as before. Now, you don't have to use `useCallback` or `useRef` anymore. Just use the local variables and local functions directly.
 
 Next question is how and when to update the components when data changes. The solution is use `reactive` data. `reactive` means when its value changes, it will trigger an update of whatever depending on it. rt-state is able to track the dependency between data and views automatically. When the data changes, rt-state only updates those components which depend on the data. So, the data is a `reactive` version of any local or global variables. In rt-state, such kind of data can be created by `state`/`stateS`/`stateLongArray` functions.
 
@@ -62,7 +62,7 @@ npm i rt-state@latest -S
 render(<Demo name={'demo'} />, document.getElementById('root'));
 ```
 More examples of code can be found in `/src/demo`.
-or see [demo](https://duchiporexia.github.io/rt-state)
+or see [demo](https://xcloudtech.github.io/rt-state).
 
 
 ### rt-state Core APIs

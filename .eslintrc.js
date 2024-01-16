@@ -13,5 +13,5 @@ module.exports = {
         eqeqeq: 'warn',
     },
     parser: '@typescript-eslint/parser',
-    extends: ['prettier', 'plugin:prettier/recommended'],
+    extends: ['prettier', 'plugin:prettier/recommended', 'plugin:storybook/recommended'],
 };
