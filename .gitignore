@@ -2,8 +2,6 @@
 #
 .DS_Store
 /.cache
-/dist/
-/lib/
 
 build/
 .idea
