@@ -13,9 +13,9 @@ test('watch: DemoWatch', async () => {
         <DemoWatch watch1CallCount={watch1CallCount} watch2CallCount={watch2CallCount} callCount={callCount} />,
     );
     await delay();
-    expect(watch1CallCount).toBeCalledTimes(1);
-    expect(watch2CallCount).toBeCalledTimes(1);
-    expect(callCount).toBeCalledTimes(2);
+    expect(watch1CallCount).toHaveBeenCalledTimes(1);
+    expect(watch2CallCount).toHaveBeenCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(2);
     const changeButton = getByTestId('change');
 
     watch1CallCount.mockClear();
@@ -23,9 +23,9 @@ test('watch: DemoWatch', async () => {
     callCount.mockClear();
     fireEvent.click(changeButton);
     await delay();
-    expect(watch1CallCount).toBeCalledTimes(0);
-    expect(watch2CallCount).toBeCalledTimes(1);
-    expect(callCount).toBeCalledTimes(0);
+    expect(watch1CallCount).toHaveBeenCalledTimes(0);
+    expect(watch2CallCount).toHaveBeenCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(0);
 });
 
 test('watch: DemoWatchProps', async () => {
@@ -36,16 +36,16 @@ test('watch: DemoWatchProps', async () => {
         <DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />,
     );
     await delay();
-    expect(watchCallCount).toBeCalledTimes(1);
-    expect(callCount).toBeCalledTimes(2);
+    expect(watchCallCount).toHaveBeenCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(2);
     expect(getByTestId('xy')).toHaveTextContent('x:(10) y:(20)');
 
     watchCallCount.mockClear();
     callCount.mockClear();
     rerender(<DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(0);
-    expect(callCount).toBeCalledTimes(0);
+    expect(watchCallCount).toHaveBeenCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
     expect(getByTestId('xy')).toHaveTextContent('x:(10) y:(20)');
 
     watchCallCount.mockClear();
@@ -53,8 +53,8 @@ test('watch: DemoWatchProps', async () => {
     obj = { ...obj };
     rerender(<DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(0);
-    expect(callCount).toBeCalledTimes(1);
+    expect(watchCallCount).toHaveBeenCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('xy')).toHaveTextContent('x:(10) y:(20)');
 
     watchCallCount.mockClear();
@@ -62,8 +62,8 @@ test('watch: DemoWatchProps', async () => {
     obj = { x: 10, y: 20 };
     rerender(<DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(0);
-    expect(callCount).toBeCalledTimes(1);
+    expect(watchCallCount).toHaveBeenCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('xy')).toHaveTextContent('x:(10) y:(20)');
 
     watchCallCount.mockClear();
@@ -71,8 +71,8 @@ test('watch: DemoWatchProps', async () => {
     obj = { x: 11, y: 20 };
     rerender(<DemoWatchProps obj={obj} watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(1);
-    expect(callCount).toBeCalledTimes(1);
+    expect(watchCallCount).toHaveBeenCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('xy')).toHaveTextContent('x:(11) y:(20)');
 });
 
@@ -81,25 +81,25 @@ test('watch: DemoWatchExternalState', async () => {
     const state = rst.state({ num: 10 });
     const { getByTestId, rerender } = render(<DemoWatchExternalState state={state} callCount={callCount} />);
     await delay();
-    expect(callCount).toBeCalledTimes(2);
+    expect(callCount).toHaveBeenCalledTimes(2);
     expect(getByTestId('nonReactiveData')).toHaveTextContent('nonReactiveData:(20)');
 
     callCount.mockClear();
     state.num++;
     await delay();
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('nonReactiveData')).toHaveTextContent('nonReactiveData:(22)');
 
     callCount.mockClear();
     state.num++;
     await delay();
-    expect(callCount).toBeCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
     expect(getByTestId('nonReactiveData')).toHaveTextContent('nonReactiveData:(22)');
 
     callCount.mockClear();
     state.num++;
     await delay();
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('nonReactiveData')).toHaveTextContent('nonReactiveData:(26)');
 });
 
@@ -108,14 +108,14 @@ test('watch: DemoDisableDelay', async () => {
     const callCount = jest.fn();
     const { getByTestId } = render(<DemoDisableDelay watchCallCount={watchCallCount} callCount={callCount} />);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(1);
-    expect(callCount).toBeCalledTimes(2);
+    expect(watchCallCount).toHaveBeenCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(2);
     const changeButton = getByTestId('change');
 
     watchCallCount.mockClear();
     callCount.mockClear();
     fireEvent.click(changeButton);
     await delay();
-    expect(watchCallCount).toBeCalledTimes(10);
-    expect(callCount).toBeCalledTimes(0);
+    expect(watchCallCount).toHaveBeenCalledTimes(10);
+    expect(callCount).toHaveBeenCalledTimes(0);
 });

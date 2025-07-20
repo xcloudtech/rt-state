@@ -33,7 +33,7 @@ test('create: DemoBatchReRender', async () => {
     // render
     const callCount = jest.fn();
     const { getByTestId, rerender } = render(<DemoBatchReRender callCount={callCount} />);
-    expect(callCount).toBeCalledTimes(2);
+    expect(callCount).toHaveBeenCalledTimes(2);
     expect(getByTestId('value')).toHaveTextContent('value:(100)');
     const addButton = getByTestId('add');
 
@@ -43,15 +43,15 @@ test('create: DemoBatchReRender', async () => {
         expect(getByTestId('value')).toHaveTextContent('value:(100100)');
     });
     // only re-render once.
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
 
     callCount.mockClear();
     rerender(<DemoBatchReRender callCount={callCount} />);
     // will not re-render
-    expect(callCount).toBeCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
 
     callCount.mockClear();
     rerender(<DemoBatchReRender x={'x'} callCount={callCount} />);
     // will re-render once, not re-create
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
 });

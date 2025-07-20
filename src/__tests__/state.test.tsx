@@ -10,14 +10,14 @@ test('state: DemoState', async () => {
 
     const state = rst.state({ x: 10, y: 20 });
     const { getByTestId, rerender } = render(<DemoState callCount={callCount} state={state} />);
-    expect(callCount).toBeCalledTimes(3);
+    expect(callCount).toHaveBeenCalledTimes(3);
     expect(getByTestId('x')).toHaveTextContent('x:(10)');
     expect(getByTestId('y')).toHaveTextContent('y:(20)');
 
     callCount.mockClear();
     state.x++;
     await delay();
-    expect(callCount).toBeCalledTimes(2);
+    expect(callCount).toHaveBeenCalledTimes(2);
     expect(getByTestId('x')).toHaveTextContent('x:(11)');
     expect(getByTestId('y')).toHaveTextContent('y:(20)');
 
@@ -25,12 +25,12 @@ test('state: DemoState', async () => {
     const val = state.x;
     state.x = val;
     await delay();
-    expect(callCount).toBeCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
 
     callCount.mockClear();
     state.y++;
     await delay();
-    expect(callCount).toBeCalledTimes(2);
+    expect(callCount).toHaveBeenCalledTimes(2);
     expect(getByTestId('x')).toHaveTextContent('x:(11)');
     expect(getByTestId('y')).toHaveTextContent('y:(21)');
 });
@@ -40,14 +40,14 @@ test('state: separate DemoState', async () => {
 
     const state = rst.state({ x: 10, y: 20 }, { separate: true });
     const { getByTestId } = render(<DemoState callCount={callCount} state={state} />);
-    expect(callCount).toBeCalledTimes(3);
+    expect(callCount).toHaveBeenCalledTimes(3);
     expect(getByTestId('x')).toHaveTextContent('x:(10)');
     expect(getByTestId('y')).toHaveTextContent('y:(20)');
 
     callCount.mockClear();
     state.x++;
     await delay();
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('x')).toHaveTextContent('x:(11)');
     expect(getByTestId('y')).toHaveTextContent('y:(20)');
 
@@ -55,12 +55,12 @@ test('state: separate DemoState', async () => {
     const val = state.x;
     state.x = val;
     await delay();
-    expect(callCount).toBeCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
 
     callCount.mockClear();
     state.y++;
     await delay();
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('x')).toHaveTextContent('x:(11)');
     expect(getByTestId('y')).toHaveTextContent('y:(21)');
 });
@@ -70,20 +70,20 @@ test('state: DemoStateS', async () => {
 
     const stateS = rst.stateS({ x: 10, y: 20 });
     const { getByTestId, rerender } = render(<DemoStateS callCount={callCount} stateS={stateS} />);
-    expect(callCount).toBeCalledTimes(3);
+    expect(callCount).toHaveBeenCalledTimes(3);
     expect(getByTestId('x')).toHaveTextContent('x:(10)');
     expect(getByTestId('y')).toHaveTextContent('y:(20)');
 
     callCount.mockClear();
     stateS.value.x++;
     await delay();
-    expect(callCount).toBeCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
     expect(getByTestId('x')).toHaveTextContent('x:(10)');
     expect(getByTestId('y')).toHaveTextContent('y:(20)');
 
     stateS.forceUpdate();
     await delay();
-    expect(callCount).toBeCalledTimes(2);
+    expect(callCount).toHaveBeenCalledTimes(2);
     expect(getByTestId('x')).toHaveTextContent('x:(11)');
     expect(getByTestId('y')).toHaveTextContent('y:(20)');
 
@@ -91,12 +91,12 @@ test('state: DemoStateS', async () => {
     const val = stateS.value;
     stateS.value = val;
     await delay();
-    expect(callCount).toBeCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
 
     callCount.mockClear();
     stateS.value = { x: 11, y: 20 };
     await delay();
-    expect(callCount).toBeCalledTimes(2);
+    expect(callCount).toHaveBeenCalledTimes(2);
     expect(getByTestId('x')).toHaveTextContent('x:(11)');
     expect(getByTestId('y')).toHaveTextContent('y:(20)');
 });

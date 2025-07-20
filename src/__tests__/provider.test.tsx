@@ -21,9 +21,9 @@ test('provider: DemoProviderContainer', async () => {
     const childChildYAddButton = getByTestId('child.child.providerY.add');
 
     await delay();
-    expect(callCount).toBeCalledTimes(2);
-    expect(childCallCount).toBeCalledTimes(2);
-    expect(childChildCallCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(2);
+    expect(childCallCount).toHaveBeenCalledTimes(2);
+    expect(childChildCallCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('child.xy')).toHaveTextContent('x:(99) y:(20)');
     expect(getByTestId('child.child.xy')).toHaveTextContent('x:(99) y:(999)');
 
@@ -33,9 +33,9 @@ test('provider: DemoProviderContainer', async () => {
 
     fireEvent.click(addAllButton);
     await delay();
-    expect(callCount).toBeCalledTimes(0);
-    expect(childCallCount).toBeCalledTimes(1);
-    expect(childChildCallCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(0);
+    expect(childCallCount).toHaveBeenCalledTimes(1);
+    expect(childChildCallCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('child.xy')).toHaveTextContent('x:(100) y:(21)');
     expect(getByTestId('child.child.xy')).toHaveTextContent('x:(100) y:(999)');
 
@@ -45,9 +45,9 @@ test('provider: DemoProviderContainer', async () => {
 
     fireEvent.click(childXAddButton);
     await delay();
-    expect(callCount).toBeCalledTimes(0);
-    expect(childCallCount).toBeCalledTimes(1);
-    expect(childChildCallCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(0);
+    expect(childCallCount).toHaveBeenCalledTimes(1);
+    expect(childChildCallCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('child.xy')).toHaveTextContent('x:(101) y:(21)');
     expect(getByTestId('child.child.xy')).toHaveTextContent('x:(101) y:(999)');
 
@@ -57,9 +57,9 @@ test('provider: DemoProviderContainer', async () => {
 
     fireEvent.click(childYAddButton);
     await delay();
-    expect(callCount).toBeCalledTimes(0);
-    expect(childCallCount).toBeCalledTimes(1);
-    expect(childChildCallCount).toBeCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
+    expect(childCallCount).toHaveBeenCalledTimes(1);
+    expect(childChildCallCount).toHaveBeenCalledTimes(0);
     expect(getByTestId('child.xy')).toHaveTextContent('x:(101) y:(22)');
     expect(getByTestId('child.child.xy')).toHaveTextContent('x:(101) y:(999)');
 
@@ -69,9 +69,9 @@ test('provider: DemoProviderContainer', async () => {
 
     fireEvent.click(childChildYAddButton);
     await delay();
-    expect(callCount).toBeCalledTimes(0);
-    expect(childCallCount).toBeCalledTimes(0);
-    expect(childChildCallCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(0);
+    expect(childCallCount).toHaveBeenCalledTimes(0);
+    expect(childChildCallCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('child.xy')).toHaveTextContent('x:(101) y:(22)');
     expect(getByTestId('child.child.xy')).toHaveTextContent('x:(101) y:(1000)');
 });
@@ -81,13 +81,13 @@ test('provider: DemoProviderWithWatch', async () => {
     const { getByTestId } = render(<DemoProviderWithWatch callCount={callCount} />);
     const addButton = getByTestId('add');
     await delay();
-    expect(callCount).toBeCalledTimes(4); // 2 + 2 views
+    expect(callCount).toHaveBeenCalledTimes(4); // 2 + 2 views
 
     callCount.mockClear();
 
     fireEvent.click(addButton);
     await delay();
-    expect(callCount).toBeCalledTimes(2);
+    expect(callCount).toHaveBeenCalledTimes(2);
     expect(getByTestId('x')).toHaveTextContent('x:(31)');
     expect(getByTestId('watchCount')).toHaveTextContent('watchCount:(2)');
 });
@@ -97,13 +97,13 @@ test('provider: DemoProviderWithUseContainer', async () => {
     const { getByTestId } = render(<DemoProviderWithUseContainer callCount={callCount} />);
     const addButton = getByTestId('add');
     await delay();
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('xx')).toHaveTextContent('xx:(10)');
 
     callCount.mockClear();
 
     fireEvent.click(addButton);
     await delay();
-    expect(callCount).toBeCalledTimes(0);
+    expect(callCount).toHaveBeenCalledTimes(0);
     expect(getByTestId('xx')).toHaveTextContent('xx:(11)');
 });

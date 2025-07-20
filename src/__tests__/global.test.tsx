@@ -7,7 +7,7 @@ import { delay } from './utils';
 test('global: DemoGlobalStateAndWatcher', async () => {
     const callCount = jest.fn();
     const { getByTestId } = render(<DemoGlobalStateAndWatcher callCount={callCount} />);
-    expect(callCount).toBeCalledTimes(4);
+    expect(callCount).toHaveBeenCalledTimes(4);
     expect(getByTestId('count')).toHaveTextContent('count:(10)');
     const addButton = getByTestId('add');
     const unwatchButton = getByTestId('unwatch');
@@ -16,7 +16,7 @@ test('global: DemoGlobalStateAndWatcher', async () => {
     fireEvent.click(addButton);
     // just re-render Child component
     await delay();
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     expect(getByTestId('watchCalled')).toHaveTextContent('watchCalled:(2)');
 
     await waitFor(() => {
@@ -28,7 +28,7 @@ test('global: DemoGlobalStateAndWatcher', async () => {
     fireEvent.click(addButton);
     await delay();
     // just re-render Child component
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     // just call watch cb once.
     expect(getByTestId('watchCalled')).toHaveTextContent('watchCalled:(3)');
 
@@ -38,7 +38,7 @@ test('global: DemoGlobalStateAndWatcher', async () => {
     fireEvent.click(addButton);
     await delay();
     // just re-render Child component
-    expect(callCount).toBeCalledTimes(1);
+    expect(callCount).toHaveBeenCalledTimes(1);
     // will not call watch cb again.
     expect(getByTestId('watchCalled')).toHaveTextContent('watchCalled:(3)');
 });
