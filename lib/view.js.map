@@ -1,1 +1,0 @@
-{"version":3,"file":"view.js","sourceRoot":"","sources":["../src/view.tsx"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAUA,oBAEC;AAZD,+BAAiC;AACjC,2CAA+B;AAG/B,IAAM,IAAI,GAAG,IAAA,cAAO,EAEjB,UAAC,KAAK;IACL,OAAO,KAAK,CAAC,MAAM,EAAS,CAAC;AACjC,CAAC,CAAC,CAAC;AAEH,SAAgB,IAAI,CAAC,MAAuB;IACxC,OAAO,oBAAC,IAAI,IAAC,MAAM,EAAE,MAAM,GAAI,CAAC;AACpC,CAAC"}

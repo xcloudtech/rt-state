@@ -347,7 +347,6 @@ MIT © [xvv](https://github.com/xcloudtech)
 
 ## 🔗 Links
 
-- [Documentation](https://xcloudtech.github.io/rt-state)
 - [GitHub](https://github.com/xcloudtech/rt-state)
 - [npm](https://www.npmjs.com/package/rt-state)
 - [Issues](https://github.com/xcloudtech/rt-state/issues)

@@ -57,18 +57,11 @@ We are committed to making participation in this project a harassment-free exper
    npm test
    ```
 
-3. Start the Storybook development server:
-   ```bash
-   npm run storybook
-   ```
-
 ### Available Scripts
 
 - `npm run build` - Build the library for production
 - `npm run test` - Run the test suite
 - `npm run lint` - Run ESLint
-- `npm run storybook` - Start Storybook development server
-- `npm run build-storybook` - Build Storybook for production
 
 ## Contributing Process
 
@@ -233,7 +226,6 @@ npm test -- --coverage
 1. **Code Documentation**: JSDoc comments for public APIs
 2. **README**: Keep the main README up to date
 3. **Examples**: Add examples for new features
-4. **Storybook**: Create stories for new components
 
 ### Documentation Standards
 
@@ -248,8 +240,7 @@ When adding features:
 
 1. Update the main README if needed
 2. Add JSDoc comments to public APIs
-3. Create or update Storybook stories
-4. Add examples to demonstrate usage
+3. Add examples to demonstrate usage
 
 ## Issue Guidelines
 
