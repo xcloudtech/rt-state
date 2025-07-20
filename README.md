@@ -1,236 +1,589 @@
 # rt-state
 
-> Another library for the state management in React and React Native. It can be used to replace React Hooks APIs. It can also be used together with React Hooks API, or calls any other library which depends on React Hooks API.
+> A reactive state management library for React and React Native that eliminates the mental burden of React Hooks while providing fine-grained reactivity and automatic dependency tracking.
 
-### Features
+[![npm version](https://badge.fury.io/js/rt-state.svg)](https://badge.fury.io/js/rt-state)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
 
-1. Automatically track the dependency between views and states, and only update the views depending on the changed state values.
-2. Unify local state and global state management. So, don't need `useContext` or wrap the component with `Provider` anymore. (rt-state has its own provider, call `provider.use()` to get data from parent or create global state, and share between different components.)
-3. Fine granularity of controlling when and how to update the view with `watch`/`link` functions.
-4. An optimized `state` function for long Array.
-5. React Hooks API integration. React Hooks API Calls can be wrapped by `hooks` within the `setup` function.
+## 🚀 Why rt-state?
 
+Traditional React development often involves:
+- Mental burden of dependency arrays in `useEffect`, `useMemo`, `useCallback`
+- Unnecessary re-renders when state changes
+- Complex patterns for sharing state between components
+- Repetitive initialization of state and functions on every render
 
-### Reasons
+**rt-state solves these problems by:**
+- ✅ **Automatic dependency tracking** - No more dependency arrays
+- ✅ **Fine-grained reactivity** - Only components that use changed data re-render
+- ✅ **Closure-based state** - Define state and functions once, use them everywhere
+- ✅ **Unified state management** - No distinction between local and global state
+- ✅ **React Hooks compatibility** - Works alongside existing React patterns
 
-In react, there are class-based components and function-based components. In most cases, function components in react can be thought of very simply. However, Hooks API has mental burden, especially for new learners. Also, because there is no state within the function, we have to repeatedly initialize the state and even redefine local functions again and again before each re-rendering. 
+## 📦 Installation
 
-Another issue is if we create a state in a root component, and use it in its children, when one of its children updates the state value, the whole root component will be re-rendered. There are many ways to optimize it. 
-  
-  - use `React.memo` or `useMemo`. However, `React.memo` is not default for each component.
-  - even when `React.memo` is used, it is still not easy to optimize. For example, if you use a callback function as one of its parameters, the reference of the callback would be changed during each re-rendering of its parent component. So, you might need `useCallback` for callback and use `useRef` for caching local data. But `useCallback` needs a dependency list. Then you will be struggling to set the dependency list. As the project becomes large, such kind of code could be problematic, and hard to maintain.
-
-I need a library, with which I can use function components happily! 
-
-### Solution
-
-In rt-state, it uses `create` function to create components, which takes a `setup` callback function as its parameter. The `setup` function is used to initialize states with `state`/`stateS`/`stateArray`, or call `watch`/`link` functions, or even create any local variables and user defined functions. Then, it returns a render function. The returned `render` function is used for re-rendering the component afterward.
-
-As you see, rt-state creates variables within the `closure` of `setup` callback. So, all the variables are accessible to the `render` function. We don't have to redefine the local data or callback functions repeatedly, because the `closure` can keep the references of data or functions be the same as before. Now, you don't have to use `useCallback` or `useRef` anymore. Just use the local variables and local functions directly.
-
-Next question is how and when to update the components when data changes. The solution is use `reactive` data. `reactive` means when its value changes, it will trigger an update of whatever depending on it. rt-state is able to track the dependency between data and views automatically. When the data changes, rt-state only updates those components which depend on the data. So, the data is a `reactive` version of any local or global variables. In rt-state, such kind of data can be created by `state`/`stateS`/`stateLongArray` functions.
-
-To sum up, the final solution is:
-  
-  * use `closure` to keep the reference of data and function.
-  * use `reactive` data to trigger the update of the components when needed. the `reactive` feature is implemented by javascript Proxy API.
-  
-
-### How to Use
-
-```
-npm i rt-state@latest -S
+```bash
+npm install rt-state
+# or
+yarn add rt-state
+# or
+pnpm add rt-state
 ```
 
-```js
-    const Demo = create<{ name: string }>((ctx) => {
-        const data = state({ num: 666 });
-        const addOne = () => data.num++;
-    
-        return (props) => {
-            return (
-                <div>
-                    <span>
-                        {props.name} {data.num}
-                    </span>
-                    <button onClick={addOne}>addOne</button>
-                </div>
-            );
-        };
-    });
+## 🎯 Quick Start
 
-render(<Demo name={'demo'} />, document.getElementById('root'));
+### Basic Counter Example
+
+```tsx
+import { create, state } from 'rt-state';
+
+const Counter = create<{ title: string }>((ctx) => {
+  // State is created once, persists across re-renders
+  const data = state({ count: 0 });
+  
+  // Functions are created once, no need for useCallback
+  const increment = () => data.count++;
+  const decrement = () => data.count--;
+  
+  // Return the render function
+  return (props) => (
+    <div>
+      <h2>{props.title}</h2>
+      <p>Count: {data.count}</p>
+      <button onClick={increment}>+</button>
+      <button onClick={decrement}>-</button>
+    </div>
+  );
+});
+
+// Usage
+<Counter title="My Counter" />
 ```
-More examples of code can be found in `/src/demo`.
-or see [demo](https://xcloudtech.github.io/rt-state).
 
+### Global State Sharing
 
-### rt-state Core APIs
+```tsx
+import { create, state } from 'rt-state';
 
-   It contains state, create, watch and hooks integration APIs. All APIs are only-once functions, which means they can not be called in the `render` function.
-   
-   They should be used in two ways:
-   
-   * Use them Globally, such as creating components with `create`/`createS` functions or creating global reactive data with `state` function or use `watch` function out of any components to watch global shared states.
-   * Use them within a `setup` function which is the parameter of the `create` function.
+// Create global state (outside any component)
+const globalCounter = state({ value: 0 });
 
-#### state APIs
+const DisplayComponent = create(() => {
+  return () => <div>Global count: {globalCounter.value}</div>;
+});
 
-  These APIs are used to create `reactive` data.
+const ControlComponent = create(() => {
+  const increment = () => globalCounter.value++;
   
-  `state` is used for watching any field value changes within an object, while, `stateS` is used for watching its own value change, commonly for primitive variables like `number` or `string`.
+  return () => (
+    <button onClick={increment}>
+      Increment Global Counter
+    </button>
+  );
+});
 
-  However, both are reactive only when the reference of value changes, and just watch the field values of the data, which is quite straightforward and simple.
-   
-   Anyway, if you are desperate for all field values within a nested object to be reactive recursively, you can just wrap the value with another `state`/`stateS` functions. But it is unnecessary for most cases. Here is an example. 
-   
-   ```js
-     const data = state({ v: state({ v: state({ v: 666 }) }) });
-   ```
-   To use `state`/`stateS` in `React` functional component, please use `useRState`/`useRStateS`, and in order to make the `dom` reactive, you should use `rst.view` to wrap the `dom`.
+// Both components automatically re-render when globalCounter changes
+```
 
-- [state](https://github.com/duchiporexia/rt-state#create)
+## 📚 Core Concepts
 
-  The variable returned by `state` is a `reactive` object, which contains several fields. Each field is reactive. For example, `data.v = 666` will trigger an update of the state dependants. WARNING: `data = newValue` will not trigger an update. So, keep in mind that only the fields are reactive, the data itself is not reactive. If you want to watch the data itself. Please use `stateS` function.
-  
-  Besides, the field of the field is not reactive as well. It means that `line 2` of the following code will not update its dependants. Because the reference of `data.v` is the same as before.
+### 1. State Management
 
-   ```js
-   const data = state({v: {v1: 1, v2: 2}});
-   data.v.v1 = 3; // This will not trigger an update of its dependants.
-   data.v = {...data.v}; // Here, it will update its dependants. Because the reference of data.v has been changed.
-   const content = extract(data); // `content` contains all fields of data.
-   ```
+#### `state(initialValue)` - Object State
+For objects where you want to track field-level changes:
 
-   So, in this case, if you want to trigger an update, you need change the reference by `{...value}` for object, or `[...value]` for array. 
-   
-   Use it in React.FC, call `useRState`.
-   
-- [stateS](https://github.com/duchiporexia/rt-state#stateS)
+```tsx
+const data = state({ name: 'John', age: 25, city: 'NYC' });
 
-  `stateS` is just a shorthand of `state({value: anything})`. So, `stateS` returns an object which only contains one field: `value`.
-  
-  Here, `anything` means anything. It includes `non-object` types like `number`, `string`, or `array`. It could also be used for `object` or even another state.
+// Only components using `name` will re-render
+data.name = 'Jane';
 
-  `stateS` is used for watching the reference change of `anything` itself. There is no way in javascript to listen to such kind of change, so, I wrap the data into the `value` field of an object. When you want to trigger an update of `anything`'s dependants, you have to change the `value` field of the wrapped object. Here is an example.
+// For nested objects, change the reference
+data.address = { ...data.address, street: 'New Street' };
+```
+
+#### `stateS(initialValue)` - Single Value State
+For primitive values or when you want to track the entire value:
+
+```tsx
+const count = stateS(0);
+const message = stateS('Hello');
+const items = stateS([1, 2, 3]);
+
+// Update the value
+count.value = 10;
+message.value = 'World';
+items.value = [...items.value, 4];
+
+// Force update without changing value
+count.forceUpdate();
+```
+
+#### `stateArray(initialValue)` - Optimized Long Arrays
+For large arrays where you want item-level reactivity:
+
+```tsx
+const longList = stateArray([
+  { id: 1, name: 'Item 1' },
+  { id: 2, name: 'Item 2' },
+  // ... many items
+]);
+
+// Only the specific item component re-renders
+longList.getItem(0).name = 'Updated Item 1';
+```
+
+### 2. Component Creation
+
+#### `create(setup)` - Main Component Creator
+```tsx
+const MyComponent = create<Props>((ctx) => {
+  // Setup phase - runs once
+  const localState = state({ data: 'initial' });
+  const globalData = provider.use(); // Access parent data
   
-  ```js
-  const data = stateS(100);
-  data.value = 101; // This will trigger an update of data's dependants.
-  data.forceUpdate(); // This line can also trigger an update of data's dependants.
-  ```
+  // Lifecycle hooks
+  ctx.onDispose(() => {
+    console.log('Component unmounting');
+  });
   
-  Use it in React.FC, call `useRStateS`.
+  // Watch state changes
+  watch(
+    () => console.log('State changed:', localState.data),
+    () => [localState.data]
+  );
   
-- [stateLongArray](https://github.com/duchiporexia/rt-state#stateLongArray)
+  // Return render function
+  return (props) => (
+    <div>
+      <p>{props.title}</p>
+      <p>{localState.data}</p>
+    </div>
+  );
+});
+```
+
+#### `createS(render)` - Simplified Components
+For simple components without setup logic:
+
+```tsx
+const SimpleComponent = createS<Props>((props) => {
+  // Use React hooks normally or rt-state hooks
+  const localState = useRState({ count: 0 });
   
-  An optimized version for long array. Don't use it unless you could understand why you need it! 
+  return (
+    <div>
+      <p>Count: {localState.count}</p>
+      <button onClick={() => localState.count++}>+</button>
+    </div>
+  );
+});
+```
+
+### 3. Advanced Features
+
+#### Computed Values with `link`
+```tsx
+const firstName = stateS('John');
+const lastName = stateS('Doe');
+
+const fullName = link(
+  () => `${firstName.value} ${lastName.value}`, // getter
+  (value: string) => {  // setter
+    const [first, last] = value.split(' ');
+    firstName.value = first;
+    lastName.value = last;
+  }
+);
+
+// Use like a regular state
+console.log(fullName.value); // "John Doe"
+fullName.value = "Jane Smith"; // Updates both firstName and lastName
+```
+
+#### Watching State Changes
+```tsx
+const data = state({ count: 0, name: 'test' });
+
+// Watch specific dependencies
+const watcher = watch(
+  () => console.log('Count changed:', data.count),
+  () => [data.count], // Only triggers when count changes
+  { compare: true } // Compare old vs new values
+);
+
+// Global watchers (outside components)
+watch(
+  () => console.log('Global state changed'),
+  () => [globalState.value],
+  { global: true }
+);
+```
+
+#### Provider Pattern
+```tsx
+// Create a provider
+const DataProvider = createProvider<{ user: User }>();
+
+// Use in parent component
+const ParentComponent = create((ctx) => {
+  const userData = state({ user: currentUser });
   
-  we can use `stateS` for array. For most cases, it is efficient enough. But there is a small issue. That is when you update one item value within the array, you have to create a new reference of the array by `[...oldArr]` in order to trigger an update. However, such kind of operation would trigger an update for all children of the root component. If all its children are created by `create` function. It is not bad, because `React.memo` will compare the new props with the old ones, and won't update the view if the props are not changed. But here is the problem:
+  return (props) => (
+    <DataProvider.Provider value={userData}>
+      <ChildComponent />
+    </DataProvider.Provider>
+  );
+});
+
+// Access in child components
+const ChildComponent = create((ctx) => {
+  const parentData = DataProvider.use(); // Accesses parent's userData
   
-    * Such comparison for child component prop values will always happen, and it is not efficient if there are many children within the root component like a long array.
+  return () => <div>User: {parentData.user.name}</div>;
+});
+```
+
+### 4. React Hooks Integration
+
+Use existing React hooks within rt-state components:
+
+```tsx
+const MyComponent = create((ctx) => {
+  // Wrap React hooks in the hooks() function
+  const [reactState, setReactState] = hooks(() => 
+    React.useState('initial')
+  );
+  
+  const effectRef = hooks(() => {
+    React.useEffect(() => {
+      console.log('Effect ran');
+    }, []);
+  });
+  
+  return () => <div>{reactState}</div>;
+});
+```
+
+### 5. Fine-Grained Reactivity with `view`
+
+For ultra-fine control over what re-renders:
+
+```tsx
+const data = state({ x: 1, y: 2, z: 3 });
+
+const Component = createS(() => (
+  <div>
+    {/* Only re-renders when data.x changes */}
+    {view(() => <span>X: {data.x}</span>)}
     
-    * It becomes even worse if some components are neither created by `create` function, nor by `React.memo`/`pure` components. In these cases, such kind of components will be re-rendered from top to bottom.
+    {/* Only re-renders when data.y changes */}
+    {view(() => <span>Y: {data.y}</span>)}
     
-    So, the solution is that we can create a data structure which can only trigger an update for each item, not for the whole array at all. `stateLongArray` is implemented by two levels of data created by `stateS`. In this way, each item is able to watch the value change of its own.
+    {/* This div never re-renders unless props change */}
+    <div>Static content</div>
+  </div>
+));
+```
 
-#### create APIs
+## 🛠️ API Reference
 
-- [create](https://github.com/duchiporexia/rt-state#create)
+### State APIs
+- `state<T>(initialValue: T): State<T>` - Creates reactive object state
+- `stateS<T>(initialValue: T): StateS<T>` - Creates reactive single value state  
+- `stateArray<T>(initialValue: T[]): StateArray<T>` - Creates optimized array state
+- `extract(state): T` - Extracts plain value from state
+- `setState(state, newValue)` - Batch update state
 
-  use `React.memo` by default, which means if the props of the component don't change, the component created by `create` function will not be re-rendered externally. Therefore, it's very efficient. 
+### Component APIs
+- `create<T>(setup: (ctx: Context<T>) => RenderFunction): React.FC<T>`
+- `createS<T>(render: (props: T) => JSX.Element, config?): React.FC<T>`
+- `view(render: () => JSX.Element): JSX.Element` - Fine-grained reactivity
+
+### Reactivity APIs
+- `watch(callback, deps, options?)` - Watch state changes
+- `link(getter, setter?, options?)` - Create computed values
+- `hooks(callback)` - Integrate React hooks
+
+### Provider APIs
+- `createProvider<T>(): Provider<T>` - Create context provider
+- `provider.use(): T` - Access provider data
+
+### Utility APIs
+- `useRState(initial)` - React hook version of `state`
+- `useRStateS(initial)` - React hook version of `stateS`
+- `useRStateArray(initial)` - React hook version of `stateArray`
+- `useOnce(callback)` - Run callback only once
+
+## 📖 Examples
+
+### Todo List
+```tsx
+import { create, state, stateArray } from 'rt-state';
+
+interface Todo {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
+const TodoApp = create(() => {
+  const todos = stateArray<Todo>([]);
+  const filter = stateS<'all' | 'active' | 'completed'>('all');
+  const input = stateS('');
   
-  Of course, the component can be controlled and updated with the data created by `state`/`stateS` function. For example, a value change of such kind of data may trigger an update of its dependants. The dependants could be components, or the callback of `watch`/`link` functions. 
-
-- [createS](https://github.com/duchiporexia/rt-state#createS)
-
-  A simplified version of `create` function to create `reactive` components.
+  const addTodo = () => {
+    if (input.value.trim()) {
+      todos.push({
+        id: Date.now(),
+        text: input.value,
+        completed: false
+      });
+      input.value = '';
+    }
+  };
   
-  There is no `setup` function, just a `render` function. If you want to create local states, please use `rst.useRState`/`rst.useRStateS` instead of `rst.state`/`rst.stateS`. Besides, it is reactive for the external states when they are used in the `render` function.
-
-#### watch APIs
-
-- [watch](https://github.com/duchiporexia/rt-state#watch)
+  const filteredTodos = link(() => {
+    const allTodos = todos.items;
+    switch (filter.value) {
+      case 'active': return allTodos.filter(todo => !todo.completed);
+      case 'completed': return allTodos.filter(todo => todo.completed);
+      default: return allTodos;
+    }
+  });
   
-  watch the state* value changes the `deps` function. And call `cb` function according to the options.
-  -- see [WatchOptions](https://github.com/duchiporexia/rt-state#WatchOptions).
-
-  Tip: If you want to call a function when the component is unmounted. Please use the `onDispose` function of [Context](https://github.com/duchiporexia/rt-state#Context).
-
-- [link](https://github.com/duchiporexia/rt-state#link)
-
-  `link` is a pair of getter and setter function.
-  
-  - `getter` function: it returns a value which will be computed and cached in the `link`. So, if all the state* in it don't change, the `value` will not be computed again.
-  
-  - `setter` function: any function for updating the state*.
-  
-  - `options`:
-    
-    * `compare`: 
-       
-       -- If `true`, means conditionally update the link value, and only update its dependants when the value changes.
+  return () => (
+    <div>
+      <input
+        value={input.value}
+        onChange={(e) => input.value = e.target.value}
+        onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+      />
+      <button onClick={addTodo}>Add Todo</button>
       
-       -- If `false`, always update the link value, and update its dependants (could be a component or a watch/link function).
+      <div>
+        <button onClick={() => filter.value = 'all'}>All</button>
+        <button onClick={() => filter.value = 'active'}>Active</button>
+        <button onClick={() => filter.value = 'completed'}>Completed</button>
+      </div>
       
-       -- The `default` value is `true`.
-    
-    * `global`: 
-    
-       -- If `true`, means this `link` function is out of any components, it is often used for sharing `link` value globally between different components.
+      <ul>
+        {filteredTodos.value.map((todo, index) => (
+          <TodoItem key={todo.id} todo={todo} onDelete={() => todos.removeAt(index)} />
+        ))}
+      </ul>
+    </div>
+  );
+});
 
+const TodoItem = create<{ todo: Todo; onDelete: () => void }>((ctx) => {
+  return (props) => (
+    <li>
+      <input
+        type="checkbox"
+        checked={props.todo.completed}
+        onChange={(e) => props.todo.completed = e.target.checked}
+      />
+      <span style={{ textDecoration: props.todo.completed ? 'line-through' : 'none' }}>
+        {props.todo.text}
+      </span>
+      <button onClick={props.onDelete}>Delete</button>
+    </li>
+  );
+});
+```
 
-#### React Hooks Integration API
+### Shopping Cart with Provider Pattern
+```tsx
+import { create, state, createProvider, link } from 'rt-state';
 
-- [hooks](https://github.com/duchiporexia/rt-state#hooks)
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
 
-  It should only be used when you have to the functionality of another library which depends on React Hooks APIs and there is no way for you to avoid it. So, IMPORTANT, use it as less as possible.
-  
-  * The callback function will be called again and again before rendering the component.
-  * don't use it in `render` function. Just call `hooks` in the `setup` closure of `create` function.
+interface CartItem extends Product {
+  quantity: number;
+}
 
-### Other APIs or Interfaces
+// Create the cart provider
+const CartProvider = createProvider<{
+  items: CartItem[];
+  total: number;
+  addToCart: (product: Product) => void;
+}>();
 
-##### Context
+const CartWrapper = create<{ children: React.ReactNode }>(() => {
+  const cart = state<{ items: CartItem[] }>({ items: [] });
+  
+  const addToCart = (product: Product) => {
+    const existingItem = cart.items.find(item => item.id === product.id);
+    if (existingItem) {
+      existingItem.quantity++;
+    } else {
+      cart.items.push({ ...product, quantity: 1 });
+    }
+    cart.items = [...cart.items]; // Trigger reactivity
+  };
+  
+  const total = link(() =>
+    cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  );
+  
+  return (props) => (
+    <CartProvider.Provider value={{
+      items: cart.items,
+      total: total.value,
+      addToCart
+    }}>
+      {props.children}
+    </CartProvider.Provider>
+  );
+});
 
-  `debugName`: string // for debugging
+const ProductList = create(() => {
+  const cart = CartProvider.use();
+  const products = [
+    { id: 1, name: 'Laptop', price: 999 },
+    { id: 2, name: 'Mouse', price: 29 },
+    { id: 3, name: 'Keyboard', price: 79 }
+  ];
   
-  `active`: boolean // if the component is unmounted, active is false. which is useful for async function call to check whether the current component is unmounted or not.
-  
-  `props`: T; // used as the props parameter of the render function.
-  
-  `defaultProps`: DefaultProps<T>; // set defaultProps in the beginning of the `setup` function which can then be used as the default property values of the component.
-  
-  `w()`: T; // used for watching the props of the current component in the returned array of the `watch` deps function. eg. \[ctx.w().prop1\]
-  
-  `onDispose()`: // add cb functions which is called when the component is about to be unmounted.
-  
-  `forceUpdate()`: // force to update the component
-  
-##### Watcher
+  return () => (
+    <div>
+      <h2>Products</h2>
+      {products.map(product => (
+        <div key={product.id}>
+          <span>{product.name} - ${product.price}</span>
+          <button onClick={() => cart.addToCart(product)}>
+            Add to Cart
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+});
 
-  `active` is useful after an async callback function in order to check whether the current `watch` is active or not.
+const CartDisplay = create(() => {
+  const cart = CartProvider.use();
   
-  `debugName`: string // for debugging
-  
-  `unwatch`, do some cleanup tasks and turn its state to inactive.
+  return () => (
+    <div>
+      <h2>Cart ({cart.items.length} items)</h2>
+      {cart.items.map(item => (
+        <div key={item.id}>
+          {item.name} x {item.quantity} = ${item.price * item.quantity}
+        </div>
+      ))}
+      <div><strong>Total: ${cart.total}</strong></div>
+    </div>
+  );
+});
 
-##### WatchOptions
-  
-  `compare`: compare new values with old values, if they are the same, don't call the callback function, otherwise, call it.
-    * The default value is true, which means always do comparison.
-    * If compare is false, don't compare two values, just call the callback function directly.
-  
-  `global`: call `watch`/`link` function outside of the `setup` callback function of any component.
-    * often used for debugging, or global `watch` function, which watches other global reactive data or global variables.
-  
-##### createProvider
-  - Create `Provider` which can be used as the parameter of `create`, and use `provider.use()` in the `setup` function to get the data from parent.
-  
-##### setDebugComponentName
-  - Just for debugging.
+const App = create(() => {
+  return () => (
+    <CartWrapper>
+      <ProductList />
+      <CartDisplay />
+    </CartWrapper>
+  );
+});
+```
 
+## 🎭 Migration Guide
 
-## License
+### From useState to rt-state
+```tsx
+// Before (useState)
+const [count, setCount] = useState(0);
+const increment = useCallback(() => setCount(c => c + 1), []);
 
-MIT © xvv
+// After (rt-state)
+const count = stateS(0);
+const increment = () => count.value++;
+```
+
+### From useContext to rt-state
+```tsx
+// Before (useContext)
+const ThemeContext = createContext();
+const theme = useContext(ThemeContext);
+
+// After (rt-state)
+const ThemeProvider = createProvider<{ theme: string }>();
+const theme = ThemeProvider.use();
+```
+
+### From useEffect to rt-state
+```tsx
+// Before (useEffect)
+useEffect(() => {
+  console.log('Count changed:', count);
+}, [count]);
+
+// After (rt-state)
+watch(
+  () => console.log('Count changed:', count.value),
+  () => [count.value]
+);
+```
+
+## 🔧 TypeScript Support
+
+rt-state is written in TypeScript and provides excellent type safety:
+
+```tsx
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+// Fully typed state
+const user = state<User>({ 
+  id: 1, 
+  name: 'John', 
+  email: 'john@example.com' 
+});
+
+// Typed component props
+const UserProfile = create<{ userId: number }>((ctx) => {
+  const userData = state<User | null>(null);
+  
+  // TypeScript knows userData.name is string | undefined
+  return (props) => (
+    <div>
+      {userData.name && <h1>{userData.name}</h1>}
+    </div>
+  );
+});
+```
+
+## 🚀 Performance Tips
+
+1. **Use `state` for objects**, `stateS` for primitives and arrays
+2. **Use `stateArray` for large lists** (> 100 items)
+3. **Use `view` for fine-grained reactivity** in large components
+4. **Prefer `link` over manual computed values** for better caching
+5. **Use `React.memo` sparingly** - rt-state handles most optimizations
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## 📄 License
+
+MIT © [xvv](https://github.com/xcloudtech)
+
+## 🔗 Links
+
+- [Documentation](https://xcloudtech.github.io/rt-state)
+- [GitHub](https://github.com/xcloudtech/rt-state)
+- [npm](https://www.npmjs.com/package/rt-state)
+- [Issues](https://github.com/xcloudtech/rt-state/issues)
+
+---
+
+**Happy coding with rt-state! 🎉**
